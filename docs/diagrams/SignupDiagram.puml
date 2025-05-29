@@ -1,0 +1,34 @@
+@startuml
+skinparam ArrowFontStyle plain
+' Define colors inline
+!define USER_COLOR #Blue
+!define MOBILE_APP_COLOR #Green  
+!define AUTH_SERVER_COLOR #Orange
+!define DATABASE_SERVER_COLOR #Red
+Actor User as user USER_COLOR
+Participant ":Mobile App" as mobileapp MOBILE_APP_COLOR
+Participant ":Auth Server" as authserver AUTH_SERVER_COLOR
+Participant ":Database Server" as dbserver DATABASE_SERVER_COLOR
+user -[USER_COLOR]> mobileapp : signUp()
+activate mobileapp MOBILE_APP_COLOR
+mobileapp -[MOBILE_APP_COLOR]> authserver : SignUp()
+activate authserver AUTH_SERVER_COLOR
+authserver -[AUTH_SERVER_COLOR]> authserver : signUpNewUser()
+activate authserver AUTH_SERVER_COLOR
+deactivate authserver
+authserver -[AUTH_SERVER_COLOR]> dbserver : Create(User)
+activate dbserver DATABASE_SERVER_COLOR
+dbserver -[DATABASE_SERVER_COLOR]-> authserver : 
+deactivate dbserver
+authserver -[AUTH_SERVER_COLOR]> authserver : createRefreshToken()
+activate authserver AUTH_SERVER_COLOR
+deactivate authserver
+authserver -[AUTH_SERVER_COLOR]> dbserver : Create(Token)
+activate dbserver DATABASE_SERVER_COLOR
+dbserver -[DATABASE_SERVER_COLOR]-> authserver : 
+deactivate dbserver
+authserver --[AUTH_SERVER_COLOR]> mobileapp : JWT Token with Access Token
+deactivate authserver
+mobileapp--[MOBILE_APP_COLOR]> user : successful login
+deactivate mobileapp
+@enduml
