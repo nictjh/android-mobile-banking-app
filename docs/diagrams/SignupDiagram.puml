@@ -23,64 +23,64 @@ participant "user.go" as usergo AUTH_SERVER_COLOR
 participant "external.go" as external AUTH_SERVER_COLOR
 participant "identity.go" as identity AUTH_SERVER_COLOR
 
-participant "executors.go" as executors AUTH_SERVER_COLOR
-participant "dialect_mysql.go" as dialect_mysql AUTH_SERVER_COLOR
-participant "dialect_common.go" as dialect_common AUTH_SERVER_COLOR
-participant "named_context.go" as named_context AUTH_SERVER_COLOR
-participant "sql.go" as sql AUTH_SERVER_COLOR
-participant "ctx_util.go" as ctx_util AUTH_SERVER_COLOR
+participant "executors.go" as executors DATABASE_COLOR
+participant "dialect_mysql.go" as dialect_mysql DATABASE_COLOR
+participant "dialect_common.go" as dialect_common DATABASE_COLOR
+participant "named_context.go" as named_context DATABASE_COLOR
+participant "sql.go" as sql DATABASE_COLOR
+participant "ctx_util.go" as ctx_util DATABASE_COLOR
 
 participant "database" as db DATABASE_COLOR
 
 user -> mobileapp : User signs up
 activate mobileapp
-mobileapp -> main : (1) _request(..., 'POST', `.../signup`, ...)
+mobileapp -> main : _request(..., 'POST', `.../signup`, ...)
 activate main
-main -> root_cmd : (2) RootCommand()
+main -> root_cmd : RootCommand()
 activate root_cmd
-root_cmd -> serve_cmd : (3) serve()
+root_cmd -> serve_cmd : serve()
 activate serve_cmd
-serve_cmd -> api : (4) NewAPIWithVersion()
+serve_cmd -> api : NewAPIWithVersion()
 activate api
-api -> signup : (5) Signup()
+api -> signup : Signup()
 activate signup
 
-signup -> refreshtoken : (6) FillGrantParams()
+signup -> refreshtoken : (2) FillGrantParams()
 activate refreshtoken
 refreshtoken -> signup
 deactivate refreshtoken
-signup -> helpers : (7) requestAud()
+signup -> helpers : (3) requestAud()
 activate helpers
 helpers -> signup
 deactivate helpers
 
-signup -> usergo : (8) ToUserModel()
+signup -> usergo : (4) ToUserModel()
 activate usergo
-usergo -> usergo : (9) NewUser()
+usergo -> usergo : (5) NewUser()
 activate usergo
 usergo -> usergo
 deactivate usergo
 usergo -> signup
 deactivate usergo
 
-signup -> signup : (10) signupNewUser()
+signup -> signup : (6) signupNewUser()
 activate signup
-signup -> executors : (11) Create(User)
+signup -> executors : (7) Create(User)
 activate executors
-executors -> dialect_mysql : (12) Dialect.Create() 
+executors -> dialect_mysql : (11) Dialect.Create() 
 activate dialect_mysql
-dialect_mysql -> dialect_common : (13) genericCreate()
+dialect_mysql -> dialect_common : (12) genericCreate()
 activate dialect_common
-dialect_common -> named_context : (14) ExecContext()
+dialect_common -> named_context : (13) ExecContext()
 activate named_context
-named_context -> sql : (15) ExecContext()
+named_context -> sql : (14) ExecContext()
 activate sql
-sql -> sql : (16) resultFromStatement()
+sql -> sql : (15) resultFromStatement()
 activate sql
 
-sql -> ctx_util : (17) ctxDriverStmtExec()
+sql -> ctx_util : (16) ctxDriverStmtExec()
 activate ctx_util
-ctx_util -> db : (18) ExecContext()
+ctx_util -> db : (17) ExecContext()
 activate db
 db --> ctx_util
 deactivate db
@@ -107,30 +107,30 @@ deactivate db
 signup -> signup
 deactivate signup
 
-signup -> external : (19) createNewIdentity()
+signup -> external : (8) createNewIdentity()
 activate external
-external -> identity : (20) NewIdentity()
+external -> identity : (9) NewIdentity()
 activate identity
 identity -> external
 deactivate identity
 
-external -> executors : (21) Create(identity)
+external -> executors : (10) Create(identity)
 
 activate executors
-executors -> dialect_mysql : (12) Dialect.Create() 
+executors -> dialect_mysql : (11) Dialect.Create() 
 activate dialect_mysql
-dialect_mysql -> dialect_common : (13) genericCreate()
+dialect_mysql -> dialect_common : (12) genericCreate()
 activate dialect_common
-dialect_common -> named_context : (14) ExecContext()
+dialect_common -> named_context : (13) ExecContext()
 activate named_context
-named_context -> sql : (15) ExecContext()
+named_context -> sql : (14) ExecContext()
 activate sql
-sql -> sql : (16) resultFromStatement
+sql -> sql : (15) resultFromStatement
 activate sql
 
-sql -> ctx_util : (17) ctxDriverStmtExec()
+sql -> ctx_util : (16) ctxDriverStmtExec()
 activate ctx_util
-ctx_util -> db : (18) ExecContext()
+ctx_util -> db : (17) ExecContext()
 activate db
 db --> ctx_util
 deactivate db
