@@ -22,58 +22,146 @@ participant "helpers.go" as helpers AUTH_SERVER_COLOR
 participant "user.go" as usergo AUTH_SERVER_COLOR
 participant "external.go" as external AUTH_SERVER_COLOR
 participant "identity.go" as identity AUTH_SERVER_COLOR
+
+participant "executors.go" as executors AUTH_SERVER_COLOR
+participant "dialect_mysql.go" as dialect_mysql AUTH_SERVER_COLOR
+participant "dialect_common.go" as dialect_common AUTH_SERVER_COLOR
+participant "named_context.go" as named_context AUTH_SERVER_COLOR
+participant "sql.go" as sql AUTH_SERVER_COLOR
+participant "ctx_util.go" as ctx_util AUTH_SERVER_COLOR
+
 participant "database" as db DATABASE_COLOR
 
 user -> mobileapp : User signs up
 activate mobileapp
-mobileapp -> signup : (1) _request(..., 'POST', `.../signup`, ...)
+mobileapp -> main : (1) _request(..., 'POST', `.../signup`, ...)
+activate main
+main -> root_cmd : (2) RootCommand()
+activate root_cmd
+root_cmd -> serve_cmd : (3) serve()
+activate serve_cmd
+serve_cmd -> api : (4) NewAPIWithVersion()
+activate api
+api -> signup : (5) Signup()
 activate signup
 
-signup -> refreshtoken : (2) FillGrantParams()
+signup -> refreshtoken : (6) FillGrantParams()
 activate refreshtoken
 refreshtoken -> signup
 deactivate refreshtoken
-signup -> helpers : (3) requestAud()
+signup -> helpers : (7) requestAud()
 activate helpers
 helpers -> signup
 deactivate helpers
 
-signup -> usergo : (4) ToUserModel()
+signup -> usergo : (8) ToUserModel()
 activate usergo
-usergo -> usergo : (5) NewUser()
+usergo -> usergo : (9) NewUser()
 activate usergo
 usergo -> usergo
 deactivate usergo
 usergo -> signup
 deactivate usergo
 
-signup -> signup : (6) signupNewUser()
+signup -> signup : (10) signupNewUser()
 activate signup
-signup -> db : (7) Create(User)
+signup -> executors : (11) Create(User)
+activate executors
+executors -> dialect_mysql : (12) Dialect.Create() 
+activate dialect_mysql
+dialect_mysql -> dialect_common : (13) genericCreate()
+activate dialect_common
+dialect_common -> named_context : (14) ExecContext()
+activate named_context
+named_context -> sql : (15) ExecContext()
+activate sql
+sql -> sql : (16) resultFromStatement()
+activate sql
+
+sql -> ctx_util : (17) ctxDriverStmtExec()
+activate ctx_util
+ctx_util -> db : (18) ExecContext()
 activate db
+db --> ctx_util
+deactivate db
+ctx_util --> sql
+deactivate ctx_util
+sql --> sql 
+deactivate sql
+sql --> named_context
+deactivate sql
+named_context --> dialect_common
+deactivate named_context
+dialect_common --> dialect_mysql
+deactivate dialect_common
+dialect_mysql --> executors
+deactivate dialect_mysql
+executors --> signup
+deactivate executors
+
+
+
 db --> signup
 deactivate db
 
 signup -> signup
 deactivate signup
 
-signup -> external : (8) createNewIdentity()
+signup -> external : (19) createNewIdentity()
 activate external
-external -> identity : (9) NewIdentity()
+external -> identity : (20) NewIdentity()
 activate identity
 identity -> external
 deactivate identity
 
-external -> db : (10) Create(identity)
+external -> executors : (21) Create(identity)
+
+activate executors
+executors -> dialect_mysql : (12) Dialect.Create() 
+activate dialect_mysql
+dialect_mysql -> dialect_common : (13) genericCreate()
+activate dialect_common
+dialect_common -> named_context : (14) ExecContext()
+activate named_context
+named_context -> sql : (15) ExecContext()
+activate sql
+sql -> sql : (16) resultFromStatement
+activate sql
+
+sql -> ctx_util : (17) ctxDriverStmtExec()
+activate ctx_util
+ctx_util -> db : (18) ExecContext()
 activate db
-db --> external
+db --> ctx_util
 deactivate db
+ctx_util --> sql
+deactivate ctx_util
+sql --> sql 
+deactivate sql
+sql --> named_context
+deactivate sql
+named_context --> dialect_common
+deactivate named_context
+dialect_common --> dialect_mysql
+deactivate dialect_common
+dialect_mysql --> executors
+deactivate dialect_mysql
+executors --> external
+deactivate executors
 external --> signup
 deactivate external
 
-mobileapp <-- signup : signup successful!
+signup --> api 
 deactivate signup
-return : signup successful
+api --> serve_cmd
+deactivate api
+serve_cmd --> root_cmd 
+deactivate serve_cmd
+root_cmd --> main 
+deactivate root_cmd
+main --> mobileapp
+deactivate main
+mobileapp --> user : signup successful
 
 legend
   MOBILE_APP_COLOR : Mobile App
