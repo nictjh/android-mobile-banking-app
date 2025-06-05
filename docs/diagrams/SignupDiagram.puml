@@ -34,53 +34,53 @@ participant "database" as db DATABASE_COLOR
 
 user -> mobileapp : User signs up
 activate mobileapp
-mobileapp -> main : _request(..., 'POST', `.../signup`, ...)
+mobileapp -> main : HTTP request(..., 'POST', `.../signup`, ...)
 activate main
-main -> root_cmd : RootCommand()
+main -> root_cmd : (1) RootCommand()
 activate root_cmd
-root_cmd -> serve_cmd : serve()
+root_cmd -> serve_cmd : (2) serve()
 activate serve_cmd
-serve_cmd -> api : NewAPIWithVersion()
+serve_cmd -> api : (3) NewAPIWithVersion()
 activate api
-api -> signup : Signup()
+api -> signup : (4) Signup()
 activate signup
 
-signup -> refreshtoken : (2) FillGrantParams()
+signup -> refreshtoken : (5) FillGrantParams()
 activate refreshtoken
 refreshtoken -> signup
 deactivate refreshtoken
-signup -> helpers : (3) requestAud()
+signup -> helpers : (6) requestAud()
 activate helpers
 helpers -> signup
 deactivate helpers
 
-signup -> usergo : (4) ToUserModel()
+signup -> usergo : (7) ToUserModel()
 activate usergo
-usergo -> usergo : (5) NewUser()
+usergo -> usergo : (8) NewUser()
 activate usergo
 usergo -> usergo
 deactivate usergo
 usergo -> signup
 deactivate usergo
 
-signup -> signup : (6) signupNewUser()
+signup -> signup : (9) signupNewUser()
 activate signup
-signup -> executors : (7) Create(User)
+signup -> executors : (10) Create(User)
 activate executors
-executors -> dialect_mysql : (11) Dialect.Create() 
+executors -> dialect_mysql : (A) Dialect.Create() 
 activate dialect_mysql
-dialect_mysql -> dialect_common : (12) genericCreate()
+dialect_mysql -> dialect_common : (B) genericCreate()
 activate dialect_common
-dialect_common -> named_context : (13) ExecContext()
+dialect_common -> named_context : (C) ExecContext()
 activate named_context
-named_context -> sql : (14) ExecContext()
+named_context -> sql : (D) ExecContext()
 activate sql
-sql -> sql : (15) resultFromStatement()
+sql -> sql : (E) resultFromStatement()
 activate sql
 
-sql -> ctx_util : (16) ctxDriverStmtExec()
+sql -> ctx_util : (F) ctxDriverStmtExec()
 activate ctx_util
-ctx_util -> db : (17) ExecContext()
+ctx_util -> db : (G) ExecContext()
 activate db
 db --> ctx_util
 deactivate db
@@ -107,30 +107,30 @@ deactivate db
 signup -> signup
 deactivate signup
 
-signup -> external : (8) createNewIdentity()
+signup -> external : (11) createNewIdentity()
 activate external
-external -> identity : (9) NewIdentity()
+external -> identity : (12) NewIdentity()
 activate identity
 identity -> external
 deactivate identity
 
-external -> executors : (10) Create(identity)
+external -> executors : (13) Create(identity)
 
 activate executors
-executors -> dialect_mysql : (11) Dialect.Create() 
+executors -> dialect_mysql : (A) Create() 
 activate dialect_mysql
-dialect_mysql -> dialect_common : (12) genericCreate()
+dialect_mysql -> dialect_common : (B) genericCreate()
 activate dialect_common
-dialect_common -> named_context : (13) ExecContext()
+dialect_common -> named_context : (C) ExecContext()
 activate named_context
-named_context -> sql : (14) ExecContext()
+named_context -> sql : (D) ExecContext()
 activate sql
-sql -> sql : (15) resultFromStatement
+sql -> sql : (E) resultFromStatement
 activate sql
 
-sql -> ctx_util : (16) ctxDriverStmtExec()
+sql -> ctx_util : (F) ctxDriverStmtExec()
 activate ctx_util
-ctx_util -> db : (17) ExecContext()
+ctx_util -> db : (G) ExecContext()
 activate db
 db --> ctx_util
 deactivate db
