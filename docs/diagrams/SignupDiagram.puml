@@ -1,34 +1,84 @@
 @startuml
+' Skin and arrow styles
 skinparam ArrowFontStyle plain
-' Define colors inline
+
+' Define participants
 !define USER_COLOR #Blue
-!define MOBILE_APP_COLOR #Green  
+!define MOBILE_APP_COLOR #Green
 !define AUTH_SERVER_COLOR #Orange
-!define DATABASE_SERVER_COLOR #Red
-Actor User as user USER_COLOR
-Participant ":Mobile App" as mobileapp MOBILE_APP_COLOR
-Participant ":Auth Server" as authserver AUTH_SERVER_COLOR
-Participant ":Database Server" as dbserver DATABASE_SERVER_COLOR
-user -[USER_COLOR]> mobileapp : signUp()
-activate mobileapp MOBILE_APP_COLOR
-mobileapp -[MOBILE_APP_COLOR]> authserver : SignUp()
-activate authserver AUTH_SERVER_COLOR
-authserver -[AUTH_SERVER_COLOR]> authserver : signUpNewUser()
-activate authserver AUTH_SERVER_COLOR
-deactivate authserver
-authserver -[AUTH_SERVER_COLOR]> dbserver : Create(User)
-activate dbserver DATABASE_SERVER_COLOR
-dbserver -[DATABASE_SERVER_COLOR]-> authserver : 
-deactivate dbserver
-authserver -[AUTH_SERVER_COLOR]> authserver : createRefreshToken()
-activate authserver AUTH_SERVER_COLOR
-deactivate authserver
-authserver -[AUTH_SERVER_COLOR]> dbserver : Create(Token)
-activate dbserver DATABASE_SERVER_COLOR
-dbserver -[DATABASE_SERVER_COLOR]-> authserver : 
-deactivate dbserver
-authserver --[AUTH_SERVER_COLOR]> mobileapp : JWT Token with Access Token
-deactivate authserver
-mobileapp--[MOBILE_APP_COLOR]> user : successful login
-deactivate mobileapp
+!define DATABASE_COLOR #Red
+
+actor User as user USER_COLOR
+participant "mobile_app" as mobileapp MOBILE_APP_COLOR
+
+participant "main.go" as main AUTH_SERVER_COLOR
+participant "root_cmd.go" as root_cmd AUTH_SERVER_COLOR
+participant "serve_cmd.go" as serve_cmd AUTH_SERVER_COLOR
+participant "api.go" as api AUTH_SERVER_COLOR
+
+participant "signup.go" as signup AUTH_SERVER_COLOR
+participant "refresh_token.go" as refreshtoken AUTH_SERVER_COLOR
+participant "helpers.go" as helpers AUTH_SERVER_COLOR
+participant "user.go" as usergo AUTH_SERVER_COLOR
+participant "external.go" as external AUTH_SERVER_COLOR
+participant "identity.go" as identity AUTH_SERVER_COLOR
+participant "database" as db DATABASE_COLOR
+
+user -> mobileapp : User signs up
+activate mobileapp
+mobileapp -> signup : (1) _request(..., 'POST', `.../signup`, ...)
+activate signup
+
+signup -> refreshtoken : (2) FillGrantParams()
+activate refreshtoken
+refreshtoken -> signup
+deactivate refreshtoken
+signup -> helpers : (3) requestAud()
+activate helpers
+helpers -> signup
+deactivate helpers
+
+signup -> usergo : (4) ToUserModel()
+activate usergo
+usergo -> usergo : (5) NewUser()
+activate usergo
+usergo -> usergo
+deactivate usergo
+usergo -> signup
+deactivate usergo
+
+signup -> signup : (6) signupNewUser()
+activate signup
+signup -> db : (7) Create(User)
+activate db
+db --> signup
+deactivate db
+
+signup -> signup
+deactivate signup
+
+signup -> external : (8) createNewIdentity()
+activate external
+external -> identity : (9) NewIdentity()
+activate identity
+identity -> external
+deactivate identity
+
+external -> db : (10) Create(identity)
+activate db
+db --> external
+deactivate db
+external --> signup
+deactivate external
+
+mobileapp <-- signup : signup successful!
+deactivate signup
+return : signup successful
+
+legend
+  MOBILE_APP_COLOR : Mobile App
+  AUTH_SERVER_COLOR : Auth Server Components
+  DATABASE_COLOR : Database Server
+endlegend
+
 @enduml
