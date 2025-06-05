@@ -1,0 +1,210 @@
+@startuml
+' Skin and arrow styles
+skinparam ArrowFontStyle plain
+
+' Define participants
+!define USER_COLOR #Blue
+!define MOBILE_APP_COLOR #Green
+!define AUTH_SERVER_COLOR #Orange
+!define DATABASE_COLOR #Red
+
+actor User as user USER_COLOR
+participant "mobile_app" as mobileapp MOBILE_APP_COLOR
+participant "signup.go" as signup AUTH_SERVER_COLOR
+participant "password.go" as password AUTH_SERVER_COLOR
+participant "refresh_token.go" as refreshtoken AUTH_SERVER_COLOR
+participant "helpers.go" as helpers AUTH_SERVER_COLOR
+participant "mail.go" as mail AUTH_SERVER_COLOR
+participant "user.go" as usergo AUTH_SERVER_COLOR
+participant "identity.go" as identity AUTH_SERVER_COLOR
+participant "external.go" as external AUTH_SERVER_COLOR
+participant "token.go" as token AUTH_SERVER_COLOR
+participant "amr.go" as amr AUTH_SERVER_COLOR
+participant "jwks.go" as jwks AUTH_SERVER_COLOR
+participant "sessions.go" as sessions AUTH_SERVER_COLOR
+participant "database" as db DATABASE_COLOR
+
+user -> mobileapp : User signs up
+activate mobileapp
+mobileapp -> signup : _request(..., 'POST', `.../signup`, ...)
+activate signup
+
+signup -> signup : validateSignupParams()
+activate signup
+signup -> password : checkPasswordStrength()
+activate password
+password -> signup
+deactivate password
+signup -> signup
+deactivate signup
+
+
+signup -> refreshtoken : FillGrantParams()
+activate refreshtoken
+refreshtoken -> signup
+deactivate refreshtoken
+signup -> helpers : requestAud()
+activate helpers
+helpers -> signup
+deactivate helpers
+signup -> mail : validateEmail()
+activate mail
+mail -> signup
+deactivate mail
+
+signup -> usergo : IsDuplicatedEmail()
+activate usergo
+usergo -> usergo : FindUserByID()
+usergo -> usergo : FindUser()
+
+usergo -> db : query User by ID
+activate db
+db -> usergo
+deactivate db
+
+usergo -> usergo : FindUserByEmailAndAudience()
+
+usergo -> usergo : FindUser()
+usergo -> db : query User by Email and Audience
+activate db
+db -> usergo
+deactivate db
+usergo -> signup
+deactivate usergo
+
+signup -> usergo : ToUserModel()
+activate usergo
+usergo -> usergo : NewUser()
+activate usergo
+usergo -> password : GenerateFromPassword()
+activate password
+password -> usergo
+deactivate password
+usergo -> usergo
+deactivate usergo
+
+usergo -> signup
+deactivate usergo
+
+signup -> signup : signupNewUser()
+activate signup
+signup -> db : Create(User)
+activate db
+db -> signup
+deactivate db
+signup -> db : Reload(User)
+activate db
+db -> signup
+deactivate db
+signup -> signup
+deactivate signup
+
+signup -> identity : FindIdentityByIdAndProvider()
+activate identity
+identity -> db : query Identity by ID and Provider
+activate db
+db -> identity
+deactivate db
+identity -> signup
+deactivate identity
+
+signup -> external : createNewIdentity()
+activate external
+external -> identity : NewIdentity()
+activate identity
+identity -> external
+deactivate identity
+
+external -> db : Create(identity)
+activate db
+db -> external
+deactivate db
+external -> signup
+deactivate external
+
+signup -> token : issueRefreshToken()
+activate token
+token -> refreshtoken : GrantAuthenticatedUser()
+activate refreshtoken 
+refreshtoken -> refreshtoken : createRefreshToken()
+activate refreshtoken
+refreshtoken -> sessions : NewSession()
+activate sessions
+sessions -> refreshtoken
+deactivate sessions
+refreshtoken -> db : Create(session)
+activate db
+db -> refreshtoken
+deactivate db
+refreshtoken -> db : Create(token)
+activate db
+db -> refreshtoken
+deactivate db
+refreshtoken -> usergo : UpdateLastSignInAt()
+activate usergo
+usergo -> db : UpdateOnly(User, LastSignInAt)
+activate db
+db -> usergo
+deactivate db
+usergo -> refreshtoken
+deactivate usergo
+refreshtoken -> refreshtoken
+deactivate refreshtoken
+refreshtoken -> token
+deactivate refreshtoken
+
+
+
+
+token -> amr : AddClaimToSession()
+activate amr
+amr -> db : add claim to session
+activate db
+db -> amr
+deactivate db
+amr -> token
+deactivate amr
+
+token -> token : generateAccessToken()
+activate token
+
+token -> sessions : FindSessionByID()
+activate sessions
+sessions -> db : query Session by ID
+activate db
+db -> sessions
+deactivate db
+sessions -> token
+deactivate sessions
+token -> sessions : CalculateAALAndAMR()
+activate sessions
+sessions -> sessions : GetAuthenticationMethod()
+activate sessions
+sessions -> sessions 
+deactivate sessions
+sessions -> token
+deactivate sessions
+
+token -> token : validateTokenClaims()
+activate token
+token -> token 
+deactivate token
+token -> jwks : signJwt()
+activate jwks
+jwks -> token
+deactivate jwks
+token -> token
+deactivate token
+token -> signup
+deactivate token
+
+signup -> helpers : sendJSON()
+activate helpers
+helpers -> signup : return token
+deactivate helpers
+
+mobileapp <- signup : AuthResponse { user, session }
+deactivate signup
+
+return : successful signup (with token)
+@enduml
