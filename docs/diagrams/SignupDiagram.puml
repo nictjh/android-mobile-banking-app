@@ -45,27 +45,23 @@ activate api
 api -> signup : (4) Signup()
 activate signup
 
-signup -> refreshtoken : (5) FillGrantParams()
-activate refreshtoken
-refreshtoken -> signup
-deactivate refreshtoken
-signup -> helpers : (6) requestAud()
+signup -> helpers : (5) requestAud()
 activate helpers
 helpers -> signup
 deactivate helpers
 
-signup -> usergo : (7) ToUserModel()
+signup -> usergo : (6) ToUserModel()
 activate usergo
-usergo -> usergo : (8) NewUser()
+usergo -> usergo : (7) NewUser()
 activate usergo
 usergo -> usergo
 deactivate usergo
 usergo -> signup
 deactivate usergo
 
-signup -> signup : (9) signupNewUser()
+signup -> signup : (8) signupNewUser()
 activate signup
-signup -> executors : (10) Create(User)
+signup -> executors : (9) Create(User)
 activate executors
 executors -> dialect_mysql : (A) Dialect.Create() 
 activate dialect_mysql
@@ -107,14 +103,14 @@ deactivate db
 signup -> signup
 deactivate signup
 
-signup -> external : (11) createNewIdentity()
+signup -> external : (10) createNewIdentity()
 activate external
-external -> identity : (12) NewIdentity()
+external -> identity : (11) NewIdentity()
 activate identity
 identity -> external
 deactivate identity
 
-external -> executors : (13) Create(identity)
+external -> executors : (12) Create(identity)
 
 activate executors
 executors -> dialect_mysql : (A) Create() 
