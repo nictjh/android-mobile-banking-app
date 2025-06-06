@@ -63,7 +63,7 @@ signup -> signup : (8) signupNewUser()
 activate signup
 signup -> executors : (9) Create(User)
 activate executors
-executors -> dialect_mysql : (A) Dialect.Create() 
+executors -> dialect_mysql : (A) Create() 
 activate dialect_mysql
 dialect_mysql -> dialect_common : (B) genericCreate()
 activate dialect_common
