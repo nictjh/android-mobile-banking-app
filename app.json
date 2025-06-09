@@ -2,7 +2,7 @@
   "expo": {
     "scheme": "mobile-banking-app",
     "name": "mobile-banking-app",
-    "slug": "mobile-banking-app",
+    "slug": "testReactNative",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -22,7 +22,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.test.mobile-banking-app"
+      "package": "com.ahmadsyuaib.androidmobilebankingapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -35,6 +35,7 @@
       "eas": {
         "projectId": "25d0a5cb-5101-4a2c-81b9-ed2a1c518487"
       }
-    }
+    },
+    "owner": "ahmadsyuaib"
   }
 }
