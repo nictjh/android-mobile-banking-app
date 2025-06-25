@@ -1,0 +1,30 @@
+{
+  "cli": {
+    "version": ">= 16.6.2",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "ENVFILE": ".env"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "ENVFILE": ".env.production"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "ENVFILE": ".env.production"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

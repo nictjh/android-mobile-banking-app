@@ -1,0 +1,168 @@
+@startuml
+' Skin and arrow styles
+skinparam ArrowFontStyle plain
+
+' Define participants
+!define USER_COLOR #Blue
+!define MOBILE_APP_COLOR #Green
+!define AUTH_SERVER_COLOR #Orange
+!define DATABASE_COLOR #Red
+
+actor User as user USER_COLOR
+participant "mobile_app" as mobileapp MOBILE_APP_COLOR
+
+participant "main.go" as main AUTH_SERVER_COLOR
+participant "root_cmd.go" as root_cmd AUTH_SERVER_COLOR
+participant "serve_cmd.go" as serve_cmd AUTH_SERVER_COLOR
+participant "api.go" as api AUTH_SERVER_COLOR
+
+participant "signup.go" as signup AUTH_SERVER_COLOR
+participant "refresh_token.go" as refreshtoken AUTH_SERVER_COLOR
+participant "helpers.go" as helpers AUTH_SERVER_COLOR
+participant "user.go" as usergo AUTH_SERVER_COLOR
+participant "external.go" as external AUTH_SERVER_COLOR
+participant "identity.go" as identity AUTH_SERVER_COLOR
+
+participant "executors.go" as executors DATABASE_COLOR
+participant "dialect_mysql.go" as dialect_mysql DATABASE_COLOR
+participant "dialect_common.go" as dialect_common DATABASE_COLOR
+participant "named_context.go" as named_context DATABASE_COLOR
+participant "sql.go" as sql DATABASE_COLOR
+participant "ctx_util.go" as ctx_util DATABASE_COLOR
+
+participant "database" as db DATABASE_COLOR
+
+user -> mobileapp : User signs up
+activate mobileapp
+mobileapp -> main : HTTP request(..., 'POST', `.../signup`, ...)
+activate main
+main -> root_cmd : (1) RootCommand()
+activate root_cmd
+root_cmd -> serve_cmd : (2) serve()
+activate serve_cmd
+serve_cmd -> api : (3) NewAPIWithVersion()
+activate api
+api -> signup : (4) Signup()
+activate signup
+
+signup -> helpers : (5) requestAud()
+activate helpers
+helpers -> signup
+deactivate helpers
+
+signup -> usergo : (6) ToUserModel()
+activate usergo
+usergo -> usergo : (7) NewUser()
+activate usergo
+usergo -> usergo
+deactivate usergo
+usergo -> signup
+deactivate usergo
+
+signup -> signup : (8) signupNewUser()
+activate signup
+signup -> executors : (9) Create(User)
+activate executors
+executors -> dialect_mysql : (A) Create() 
+activate dialect_mysql
+dialect_mysql -> dialect_common : (B) genericCreate()
+activate dialect_common
+dialect_common -> named_context : (C) ExecContext()
+activate named_context
+named_context -> sql : (D) ExecContext()
+activate sql
+sql -> sql : (E) resultFromStatement()
+activate sql
+
+sql -> ctx_util : (F) ctxDriverStmtExec()
+activate ctx_util
+ctx_util -> db : (G) ExecContext()
+activate db
+db --> ctx_util
+deactivate db
+ctx_util --> sql
+deactivate ctx_util
+sql --> sql 
+deactivate sql
+sql --> named_context
+deactivate sql
+named_context --> dialect_common
+deactivate named_context
+dialect_common --> dialect_mysql
+deactivate dialect_common
+dialect_mysql --> executors
+deactivate dialect_mysql
+executors --> signup
+deactivate executors
+
+
+
+db --> signup
+deactivate db
+
+signup -> signup
+deactivate signup
+
+signup -> external : (10) createNewIdentity()
+activate external
+external -> identity : (11) NewIdentity()
+activate identity
+identity -> external
+deactivate identity
+
+external -> executors : (12) Create(identity)
+
+activate executors
+executors -> dialect_mysql : (A) Create() 
+activate dialect_mysql
+dialect_mysql -> dialect_common : (B) genericCreate()
+activate dialect_common
+dialect_common -> named_context : (C) ExecContext()
+activate named_context
+named_context -> sql : (D) ExecContext()
+activate sql
+sql -> sql : (E) resultFromStatement
+activate sql
+
+sql -> ctx_util : (F) ctxDriverStmtExec()
+activate ctx_util
+ctx_util -> db : (G) ExecContext()
+activate db
+db --> ctx_util
+deactivate db
+ctx_util --> sql
+deactivate ctx_util
+sql --> sql 
+deactivate sql
+sql --> named_context
+deactivate sql
+named_context --> dialect_common
+deactivate named_context
+dialect_common --> dialect_mysql
+deactivate dialect_common
+dialect_mysql --> executors
+deactivate dialect_mysql
+executors --> external
+deactivate executors
+external --> signup
+deactivate external
+
+signup --> api 
+deactivate signup
+api --> serve_cmd
+deactivate api
+serve_cmd --> root_cmd 
+deactivate serve_cmd
+root_cmd --> main 
+deactivate root_cmd
+main --> mobileapp
+deactivate main
+mobileapp --> user : signup successful
+
+legend
+  MOBILE_APP_COLOR : Mobile App
+  AUTH_SERVER_COLOR : Auth Server Components
+  DATABASE_COLOR : Database Server
+endlegend
+
+@enduml
