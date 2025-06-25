@@ -119,8 +119,8 @@ npx expo run:android
 
 If you have certain issues, it might be due to caching from previous build versions. For that just troubleshoot with the following:
 
-- run 'npx expo start -c' OR
-- run 'cd android & ./gradlew clean' (ensure that you have gradle installed)
+- run `npx expo start -c` OR
+- run `cd android & ./gradlew clean` (ensure that you have gradle installed)
 
 ---
 
