@@ -115,6 +115,13 @@ If you want to test using an emulator:
 npx expo run:android
 ```
 
+## Troubleshooting issues
+
+If you have certain issues, it might be due to caching from previous build versions. For that just troubleshoot with the following:
+
+- run 'npx expo start -c' OR
+- run 'cd android & ./gradlew clean' (ensure that you have gradle installed)
+
 ---
 
 ## Create an apk
