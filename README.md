@@ -83,25 +83,21 @@ npm install
 yarn install
 ```
 
-### 3. Start the Development Server
+### 3. Add environmental variables
+
+- Create a .env file and .env.production files and add relevant variables (e.g. Supabase url and key)
+
+### 4. Start the Development Server
 
 ```bash
-npx expo start
-# or
-expo start
+npx expo run:android
 ```
 
 This will open a browser tab with the Expo Developer Tools.
 
-### 4. Run the App
+### 5. Run the App
 
-#### Option 1: On Physical Device (Using Expo Go)
-
-1. Open **Expo Go** on your iOS/Android device.
-2. Scan the QR code shown in the terminal or browser.
-3. The app should load instantly.
-
-#### Option 2: On Android Emulator
+#### On Android Emulator
 
 If you want to test using an emulator:
 
@@ -116,10 +112,16 @@ If you want to test using an emulator:
 4. In your terminal (make sure emulator is running):
 
 ```bash
-npx expo start --android
+npx expo run:android
 ```
 
-> 💡 Note: You do NOT need to eject from Expo to run it on emulator.
+---
+
+## Create an apk
+
+```bash
+npx expo run:android --variant release
+```
 
 ---
 
