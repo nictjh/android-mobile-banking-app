@@ -3,6 +3,8 @@ import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator } f
 import { useRouter } from 'expo-router'
 import { supabase } from '../lib/supabase' // You'll need to set this up
 
+import { NativeModules } from 'react-native';
+
 export default function Login() {
   const router = useRouter()
   const [email, setEmail] = useState('')
@@ -35,9 +37,13 @@ export default function Login() {
       setLoading(false)
     }
   }
+  const showToast = () => {
+    NativeModules.MyToastModule.showToast('Hello from native!');
+  };
 
   return (
     <View style={styles.container}>
+      <Button title="Show Native Toast" onPress={showToast} />
       <Text style={styles.title}>Login</Text>
 
       <TextInput
