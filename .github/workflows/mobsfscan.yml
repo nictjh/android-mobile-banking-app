@@ -20,15 +20,20 @@ jobs:
           python-version: '3.x'
 
       - name: Install mobsfscan
-        run: |
-          pip install mobsfscan
+        run: pip install mobsfscan
 
-      - name: Run mobsfscan and generate report
+      - name: Run mobsfscan and generate JSON + SARIF reports
         run: |
           mobsfscan --json . > mobsfscan-report.json || true
+          mobsfscan --sarif . > mobsfscan-results.sarif || true
 
-      - name: Upload mobsfscan report
+      - name: Upload JSON report (artifact)
         uses: actions/upload-artifact@v4
         with:
-          name: mobsfscan-report
+          name: mobsfscan-json-report
           path: mobsfscan-report.json
+
+      - name: Upload SARIF report to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: mobsfscan-results.sarif
