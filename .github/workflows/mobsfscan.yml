@@ -25,8 +25,7 @@ jobs:
 
       - name: Run mobsfscan and generate report
         run: |
-          mobsfscan --json . > mobsfscan-report.json
-          mobsfscan --exit-zero .  # Do not fail build on issues
+          mobsfscan --json --exit-zero . > mobsfscan-report.json
 
       - name: Upload mobsfscan report
         uses: actions/upload-artifact@v4
