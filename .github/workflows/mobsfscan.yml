@@ -12,46 +12,30 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
-      - name: Install mobsfscan and jq
-        run: |
-          pip install mobsfscan
-          sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Run mobsfscan and generate JSON + SARIF reports
-        run: |
-          mobsfscan --json . > mobsfscan-report.json || true
-          mobsfscan --sarif . > mobsfscan-results.sarif || true
-
-      - name: Fix SARIF file paths (make relative)
-        run: |
-          sed -i "s|$(pwd)/||g" mobsfscan-results.sarif
-          sed -i "s|file://||g" mobsfscan-results.sarif
+      - name: Run mobsfscan and generate SARIF report
+        uses: MobSF/mobsfscan@main
+        with:
+          args: '. --sarif --output mobsfscan-results.sarif || true'
 
       - name: Inspect SARIF report issue count
         run: |
           echo "Detected findings:"
-          cat mobsfscan-results.sarif | jq '.runs[0].results | length'
-
-      - name: Upload JSON report (artifact)
-        uses: actions/upload-artifact@v4
-        with:
-          name: mobsfscan-json-report
-          path: mobsfscan-report.json
-
-      - name: Upload SARIF report for debugging
-        uses: actions/upload-artifact@v4
-        with:
-          name: mobsfscan-sarif-debug
-          path: mobsfscan-results.sarif
+          jq '.runs[0].results | length' mobsfscan-results.sarif
 
       - name: Upload SARIF report to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: mobsfscan-results.sarif
+
+      - name: Upload SARIF report (artifact for debugging)
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobsfscan-sarif-debug
+          path: mobsfscan-results.sarif
