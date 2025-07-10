@@ -27,6 +27,9 @@ jobs:
           mobsfscan --json . > mobsfscan-report.json || true
           mobsfscan --sarif . > mobsfscan-results.sarif || true
 
+      - name: Inspect SARIF report level
+        run: cat mobsfscan-results.sarif | jq '.runs[0].results | length'
+
       - name: Upload JSON report (artifact)
         uses: actions/upload-artifact@v4
         with:
