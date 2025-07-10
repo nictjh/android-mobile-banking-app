@@ -99,7 +99,7 @@ android {
             }
         }
         applicationId 'com.ahmadsyuaib.androidmobilebankingapp'
-        minSdkVersion rootProject.ext.minSdkVersion
+        minSdkVersion 29 /* Minimum SDK version for Android 13 (Still supported by Google Play as of 09/07/2025) */
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0.0"
