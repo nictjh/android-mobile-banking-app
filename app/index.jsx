@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator } from 'react-native'
 import { useRouter } from 'expo-router'
 import { supabase } from '../lib/supabase' // You'll need to set this up
+import * as FileSystem from 'expo-file-system';
 
 import { NativeModules } from 'react-native';
 
@@ -18,7 +19,7 @@ export default function Login() {
     }
 
     setLoading(true)
-    
+
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -29,6 +30,12 @@ export default function Login() {
         Alert.alert('Login Error', error.message)
       } else {
         // Login successful, navigate to home or protected route
+
+        // Write something to test release build writing
+        const path = FileSystem.documentDirectory + 'release_proof.txt';
+        await FileSystem.writeAsStringAsync(path, 'Release build proof!');
+        const contents = await FileSystem.readAsStringAsync(path);
+        console.log('READ CONTENTS:', contents);
         router.replace('/home')
       }
     } catch (error) {
