@@ -12,3 +12,10 @@
 -keep class com.facebook.react.turbomodule.** { *; }
 
 # Add any project specific keep options here:
+
+# Stripping Logs in release build
+-assumenosideeffects class android.util.Log {
+    public static *** v(...);
+    public static *** d(...);
+    public static *** i(...);
+}

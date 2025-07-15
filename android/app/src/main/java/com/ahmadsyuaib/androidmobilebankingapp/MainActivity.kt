@@ -2,6 +2,7 @@ package com.ahmadsyuaib.androidmobilebankingapp
 
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
@@ -17,6 +18,12 @@ class MainActivity : ReactActivity() {
     // This is required for expo-splash-screen.
     setTheme(R.style.AppTheme);
     super.onCreate(null)
+
+    Log.v("MY_APP_LOG", ">>> XXXX sensitive information XXXX from release build - VERBOSE");
+    Log.d("MY_APP_LOG", ">>> XXXX sensitive information XXXX from release build - DEBUG");
+    Log.i("MY_APP_LOG", ">>> XXXX sensitive information XXXX from release build - INFO");
+    Log.w("MY_APP_LOG", ">>> XXXX sensitive information XXXX from release build - WARN");
+    Log.e("MY_APP_LOG", ">>> XXXX sensitive information XXXX from release build - ERROR");
   }
 
   /**
