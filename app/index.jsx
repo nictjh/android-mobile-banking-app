@@ -2,27 +2,51 @@ import { useState } from 'react'
 import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator } from 'react-native'
 import { useRouter } from 'expo-router'
 import { supabase } from '../lib/supabase' // You'll need to set this up
+import validator from 'validator';
 
 import { NativeModules } from 'react-native';
 
 export default function Login() {
+
+  // Constants
+  const MAX_EMAIL_LENGTH = 254;
+  const MAX_PASSWORD_LENGTH = 72;
+
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const handleLogin = async () => {
+  const handleLogin = async (email, password) => {
     if (!email || !password) {
       Alert.alert('Error', 'Please fill in all fields')
       return
     }
 
+    const cleanedEmail = validator.normalizeEmail(email.trim()) || '';
+    const cleanedPassword = password.trim();
+
+    if (cleanedEmail.length > MAX_EMAIL_LENGTH) {
+      Alert.alert('Error', 'Email is too long');
+      return;
+    }
+
+    if (cleanedPassword.length > MAX_PASSWORD_LENGTH) {
+      Alert.alert('Error', 'Password is too long');
+      return;
+    }
+
+    if (!validator.isEmail(cleanedEmail)) {
+      Alert.alert('Error', 'Please enter a valid email address')
+      return
+    }
+
     setLoading(true)
-    
+
     try {
       const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password
+        email: cleanedEmail,
+        password: cleanedPassword,
       })
 
       if (error) {
@@ -66,15 +90,15 @@ export default function Login() {
         <ActivityIndicator />
       ) : (
         <>
-          <Button 
-            title="Login" 
-            onPress={handleLogin} 
+          <Button
+            title="Login"
+            onPress={() => handleLogin(email, password)}
             disabled={loading}
           />
           <View style={{ marginTop: 10 }} />
-          <Button 
-            title="Go to Signup" 
-            onPress={() => router.push('/signup')} 
+          <Button
+            title="Go to Signup"
+            onPress={() => router.push('/signup')}
             disabled={loading}
           />
         </>

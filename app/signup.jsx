@@ -2,16 +2,43 @@ import { useState } from 'react'
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native'
 import { useRouter } from 'expo-router'
 import { supabase } from '../lib/supabase' // <-- relative import
+import validator from 'validator';
 
 export default function Signup() {
+
+  // Constants
+  const MAX_EMAIL_LENGTH = 254;
+  const MAX_PASSWORD_LENGTH = 72;
+
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const handleSignup = async () => {
-    if (password !== confirmPassword) {
+  const handleSignup = async (email, password, confirmPassword) => {
+    // Clean and Sanitize inputs
+    const cleanedEmail = validator.normalizeEmail(email.trim()) || '';
+    const cleanedPassword = password.trim();
+    const cleanedConfirmPassword = confirmPassword.trim();
+    console.log("Running Sanitize and Validate Inputs");
+
+    if (cleanedEmail.length > MAX_EMAIL_LENGTH) {
+      Alert.alert('Error', 'Email is too long');
+      return;
+    }
+
+    if (cleanedPassword.length > MAX_PASSWORD_LENGTH) {
+      Alert.alert('Error', 'Password is too long');
+      return;
+    }
+
+    if (!validator.isEmail(cleanedEmail)) {
+      Alert.alert('Error', 'Please enter a valid email address')
+      return
+    }
+
+    if (cleanedPassword !== cleanedConfirmPassword) {
       Alert.alert('Error', 'Passwords do not match')
       return
     }
@@ -19,8 +46,8 @@ export default function Signup() {
     setLoading(true)
 
     const { error } = await supabase.auth.signUp({
-      email,
-      password,
+      email: cleanedEmail,
+      password: cleanedPassword,
     })
 
     setLoading(false)
@@ -32,7 +59,7 @@ export default function Signup() {
         'Signup Success',
         'Please check your email to confirm your account.'
       )
-      router.replace('/home') 
+      router.replace('/home')
     }
   }
 
@@ -63,7 +90,7 @@ export default function Signup() {
         secureTextEntry
       />
 
-      <Button title={loading ? 'Signing Up...' : 'Sign Up'} onPress={handleSignup} disabled={loading} />
+      <Button title={loading ? 'Signing Up...' : 'Sign Up'} onPress={() => handleSignup(email, password, confirmPassword)} disabled={loading} />
       <View style={{ marginTop: 10 }} />
       <Button title="Back to Login" onPress={() => router.back()} />
     </View>
