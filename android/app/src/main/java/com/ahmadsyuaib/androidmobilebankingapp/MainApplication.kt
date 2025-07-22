@@ -18,6 +18,7 @@ import expo.modules.ReactNativeHostWrapper
 
 // ✅ Add this import to use your custom toast package
 import com.anonymous.StickerSmash.MyToastPackage
+import com.ahmadsyuaib.androidmobilebankingapp.KeystorePackage
 
 class MainApplication : Application(), ReactApplication {
 
@@ -28,6 +29,7 @@ class MainApplication : Application(), ReactApplication {
             val packages = PackageList(this).packages.toMutableList()
             // ✅ Register your custom toast module here
             packages.add(MyToastPackage())
+            packages.add(KeystorePackage())
             return packages
           }
 
