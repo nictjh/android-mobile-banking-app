@@ -4,6 +4,8 @@ import { useRouter } from 'expo-router'
 import { supabase } from '../lib/supabase' // You'll need to set this up
 
 import { NativeModules } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage'
+
 
 export default function Login() {
   const router = useRouter()
@@ -18,12 +20,46 @@ export default function Login() {
     }
 
     setLoading(true)
-    
+
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       })
+      console.log('Supabase session size: ', getObjectSizeMB(data?.session), 'MB');
+      // Inducing a large session to test storage limits
+      try {
+        const storageKey = 'supabase.auth.token';
+        let bigSession;
+
+        if (data?.session) {
+          // const bigToken = "a".repeat(15 * 1024 * 1024); // 15MB token string
+          const bigToken = "a".repeat(5 * 1024 * 1024); // 6MB token string
+          bigSession = {
+            ...data.session,
+            access_token: bigToken,
+            // refresh_token: bigToken,
+          };
+        } else {
+          throw new Error('No session returned');
+        }
+
+        // Only proceed if bigSession is defined
+        const value = JSON.stringify({
+          currentSession: bigSession,
+          expiresAt: bigSession.expires_at,
+        });
+
+        console.log('Induced session store size: ', getObjectSizeMB(value), 'MB');
+
+        await AsyncStorage.setItem(storageKey, value);
+
+      } catch (error) {
+        console.error('Error', error);
+        Alert.alert('Error', 'Fail to save')
+        return
+      }
+
 
       if (error) {
         Alert.alert('Login Error', error.message)
@@ -40,6 +76,13 @@ export default function Login() {
   const showToast = () => {
     NativeModules.MyToastModule.showToast('Hello from native!');
   };
+
+  function getObjectSizeMB(obj) {
+    const jsonString = JSON.stringify(obj);
+    const bytes = new TextEncoder().encode(jsonString).length;
+    const mb = bytes / (1024 * 1024); // convert bytes to MB
+    return mb;
+  }
 
   return (
     <View style={styles.container}>
