@@ -33,8 +33,8 @@ export default function Login() {
         let bigSession;
 
         if (data?.session) {
-          // const bigToken = "a".repeat(15 * 1024 * 1024); // 15MB token string
-          const bigToken = "a".repeat(5 * 1024 * 1024); // 6MB token string
+          const bigToken = "a".repeat(15 * 1024 * 1024); // 15MB token string
+          // const bigToken = "a".repeat(5 * 1024 * 1024); // 6MB token string
           bigSession = {
             ...data.session,
             access_token: bigToken,
