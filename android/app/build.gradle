@@ -162,6 +162,8 @@ android {
 }
 
 dependencies {
+    implementation 'com.google.android.play:integrity:1.1.0'
+    implementation 'com.google.android.gms:play-services-tasks:18.0.2'
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
 
