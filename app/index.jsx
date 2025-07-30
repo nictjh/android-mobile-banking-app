@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router'
 import { supabase } from '../lib/supabase' // You'll need to set this up
 
 import { NativeModules } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import { safeAsyncStorage } from '../lib/customStorAdapter.jsx';
 
 
 export default function Login() {
@@ -26,38 +26,48 @@ export default function Login() {
         email,
         password
       })
+
+      // Log the session size for debugging
       console.log('Supabase session size: ', getObjectSizeMB(data?.session), 'MB');
       // Inducing a large session to test storage limits
+      const storageKey = 'supabase.auth.token';
+      let bigSession;
+
+      if (data?.session) {
+        const bigToken = "a".repeat(3 * 1024 * 1024); // 3MB token string
+        // const bigToken = "a".repeat(1 * 1024 * 1024); // 1MB token string
+        bigSession = {
+          ...data.session,
+          access_token: bigToken,
+          // refresh_token: bigToken, // This is length 12 if I want to check
+        };
+      } else {
+        throw new Error('No session returned');
+      }
+
+      const value = JSON.stringify({
+        currentSession: bigSession,
+        expiresAt: bigSession.expires_at,
+      });
+
+      console.log('Induced session store size: ', getObjectSizeMB(value), 'MB');
+
       try {
-        const storageKey = 'supabase.auth.token';
-        let bigSession;
-
-        if (data?.session) {
-          const bigToken = "a".repeat(15 * 1024 * 1024); // 15MB token string
-          // const bigToken = "a".repeat(5 * 1024 * 1024); // 6MB token string
-          bigSession = {
-            ...data.session,
-            access_token: bigToken,
-            // refresh_token: bigToken,
-          };
-        } else {
-          throw new Error('No session returned');
-        }
-
-        // Only proceed if bigSession is defined
-        const value = JSON.stringify({
-          currentSession: bigSession,
-          expiresAt: bigSession.expires_at,
-        });
-
-        console.log('Induced session store size: ', getObjectSizeMB(value), 'MB');
-
-        await AsyncStorage.setItem(storageKey, value);
-
-      } catch (error) {
-        console.error('Error', error);
-        Alert.alert('Error', 'Fail to save')
-        return
+        await safeAsyncStorage.setItem(key, value);
+      } catch (err) {
+        Alert.alert(
+          'Session Too Large',
+          'Your session data is too large to be stored securely. You will be logged out. Please log in again.',
+          [
+            {
+              text: 'OK',
+              onPress: async () => {
+                await supabase.auth.signOut();
+              }
+            }
+          ]
+        );
+        return;
       }
 
 
@@ -73,6 +83,7 @@ export default function Login() {
       setLoading(false)
     }
   }
+
   const showToast = () => {
     NativeModules.MyToastModule.showToast('Hello from native!');
   };
