@@ -100,7 +100,7 @@ android {
         }
         applicationId 'com.ahmadsyuaib.androidmobilebankingapp'
         minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
+        targetSdkVersion 33 //Changed this to enforce Scoped Storage
         versionCode 1
         versionName "1.0.0"
 
