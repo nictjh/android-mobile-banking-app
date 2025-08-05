@@ -8,18 +8,27 @@ export default function Home() {
 
     useEffect(() => {
         const checkSession = async () => {
-            const { data } = await supabase.auth.getSession();
+            try {
+            // Force Supabase to re-check the session (flush memory → disk)
+            await supabase.auth.refreshSession();
+
+            const { data, error } = await supabase.auth.getSession();
+            console.log("Checking session:", data.session, error?.message);
+
             if (!data.session) {
+                router.replace('/');
+            }
+            } catch (err) {
+            console.error("Unexpected error during session check:", err);
             router.replace('/');
             }
         };
 
-        checkSession(); // on mount
+        checkSession(); // Initial check on mount
 
-        const interval = setInterval(checkSession, 1000); // check every 1 seconds
-
-        return () => clearInterval(interval); // cleanup
-    }, []);
+        const interval = setInterval(checkSession, 1000); // Aggressive check every second
+        return () => clearInterval(interval); // Cleanup
+    }, [router]);
 
 
   const handleLogout = async () => {
