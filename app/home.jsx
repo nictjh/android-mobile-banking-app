@@ -78,6 +78,14 @@ export default function Home() {
             messages.push(`❗❗ Expected failure reading:\n\n${e.message}`);
         }
 
+        // Try overwriting the foreign file
+        try {
+            await RNFS.writeFile(foreignFile, 'Overwritten content from app', 'utf8');
+            messages.push(`❗ Unexpectedly overwrote foreign file`);
+        } catch (e) {
+            messages.push(`✅ Expected failure writing:\n${e.message}`);
+        }
+
         Alert.alert('Scoped Storage Test', messages.join('\n\n'));
         };
 

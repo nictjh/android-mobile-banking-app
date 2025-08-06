@@ -100,7 +100,7 @@ android {
         }
         applicationId 'com.ahmadsyuaib.androidmobilebankingapp'
         minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion 33 //Changed this to enforce Scoped Storage
+        targetSdkVersion 33 //Changed to meet Google Play requirements, 33 supports Scoped Storage by default
         versionCode 1
         versionName "1.0.0"
 

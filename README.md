@@ -1,181 +1,84 @@
-# Proof-of-Concept - Validating mobile app security controls
+# 📂 Scoped Storage Demonstration – Android 9 vs Android 16
 
-This PoC tests whether recommended mobile app security controls can be implemented and if they can really help in stopping potential threats.
+This branch modifies the home screen of the app to demonstrate the implications of Android's **Scoped Storage** system introduced in later versions of Android.
 
-## Goals Checklist
+## 🔍 Overview
 
-- [ ] Build a working banking mobile app with decoupled components
-- [ ] Perform threat modelling on each component
-- [ ] Implement relevant mobile app security controls and validate their effectiveness
-- [ ] Recommend practical mobile app security controls
+The demonstration focuses on how different Android versions handle access to files stored in external storage, specifically:
 
-## User Stories
-
-As a user,
-
-- [ ] I want to set up a new account so that I can start using the app's services
-- [ ] I want to sign in to my account so that I can securely access my personal information and features
-- [ ] I want to sign out of my account so that I can ensure my information is protected when I'm not using the app
-- [ ] I want to transfer funds to other accounts so that I can send money to others
-- [ ] I want to transfer funds using PayNow so that I can make quick and easy payments using just a mobile number or NRIC
-- [ ] I want to receive push notifications so that I stay informed about important updates in my account
-- [ ] I want to view web content within the app so that I don't have to switch to an external browser
-- [ ] I want to send real-time messages to customer support so that I can get immediate help with my issues
-
-## Contributing
-
-Contributions are welcome and appreciated! If you have an idea or suggestion to improve this project:
-
-- Fork the repo
-- Create a feature branch
-- Commit your Changes
-- Push to your Branch
-- Open a Pull Request
-
-```
-MMMMMMMM      MMMMMMMM     OOOOOOOOOOO     BBBBBBBBBB      IIIIIIIII      LLL             EEEEEEEEEEE
-MMMMMMMMM    MMMMMMMMM    OOOOOOOOOOOOO    BBBBBBBBBBBB       III         LLL             EEEEEEEEEEE
-MMMM MMMMM  MMMMM MMMM   OOOO       OOOO   BBBB    BBBBB      III         LLL             EEE
-MMMM  MMMMMMMM  MMMMMM   OOOO       OOOO   BBBBBBBBBBBB       III         LLL             EEEEEEEEE
-MMMM   MMMMMM   MMMMMM   OOOO       OOOO   BBBBBBBBBBBB       III         LLL             EEEEEEEEE
-MMMM    MMMM    MMMMMM   OOOO       OOOO   BBBB    BBBBB      III         LLL             EEE
-MMMM           MMMMMMM   OOOOOOOOOOOOOO    BBBBBBBBBBBB     IIIIIII       LLLLLLLLL       EEEEEEEEEEE
-MMMM           MMMMMMM    OOOOOOOOOOO      BBBBBBBBBB      IIIIIIIII      LLLLLLLLL       EEEEEEEEEEE
-
-```
-
-# 🚀 Getting Started with the App (Expo + React Native)
-
-This project uses **React Native** with **Expo** for rapid mobile development. Follow the steps below to set up your environment and run the app locally.
+1. ✅ Writing files to:
+   - Shared external storage (`/sdcard/Download`)
+   - App-specific external directories (`/sdcard/Android/data/<package>/files`)
+2. ✅ Attempting to read and overwrite a **foreign file** (`secret_from_adb.txt`) pushed via `adb`, which the app does **not** own.
 
 ---
 
-## 📦 Prerequisites
+## Test Setup
 
-Before running the app, ensure the following are installed:
-
-- **Node.js (v18 or later recommended)**: [https://nodejs.org](https://nodejs.org)
-- **Git**: [https://git-scm.com](https://git-scm.com)
-- **Expo CLI**: Install globally using `npm install -g expo-cli`
-- **Expo Go App** on your phone:
-
-  - [Android](https://play.google.com/store/apps/details?id=host.exp.exponent)
-  - [iOS](https://apps.apple.com/app/expo-go/id982107779)
-
-> ⚠️ Only physical devices are supported with **Expo Go** (not emulators). If you want to run on Android Emulator, see below.
-
----
-
-## 🧑‍💻 Setup Instructions
-
-### 1. Clone the Repository
+### 🔧 File Preparation
+A file named `secret_from_adb.txt` was pushed into the shared `Download/` directory via:
 
 ```bash
-git clone https://github.com/your-username/your-repo-name.git
-cd your-repo-name
+adb push secret_from_adb.txt /sdcard/Download/
 ```
 
-### 2. Install Dependencies
+### Android Environments Used
 
-```bash
-npm install
-# or
-yarn install
-```
+#### ✅ Android 9 "Pie" (API 28) - ARM64 Emulator
+- App **successfully wrote** to both shared and app-specific external storage.
+- App **was able to read and overwrite** the foreign file `secret_from_adb.txt`.
+- ➕ Scoped Storage is **not enforced**, so `WRITE_EXTERNAL_STORAGE` grants broad access.
 
-### 3. Add environmental variables
+##### Evidence (Unrestricted Access on Android 9)
+![Android 9 Screenshot](./assets/Android9Pass.jpg)
 
-- Create a .env file and .env.production files and add relevant variables (e.g. Supabase url and key)
 
-### 4. Start the Development Server
-
-```bash
-npx expo run:android
-```
-
-This will open a browser tab with the Expo Developer Tools.
-
-### 5. Run the App
-
-#### On Android Emulator
-
-If you want to test using an emulator:
-
-1. Install **Android Studio**: [https://developer.android.com/studio](https://developer.android.com/studio)
-2. During installation, ensure the **Android SDK**, **AVD Manager**, and **HAXM** are checked.
-3. Open Android Studio:
-
-   - Go to **More Actions → Virtual Device Manager**.
-   - Create a new Android Virtual Device (Pixel 5 or similar, API 33 or higher recommended).
-   - Click the **play** ▶️ button to start the emulator.
-
-4. In your terminal (make sure emulator is running):
-
-```bash
-npx expo run:android
-```
-
-## Troubleshooting issues
-
-If you have certain issues, it might be due to caching from previous build versions. For that just troubleshoot with the following:
-
-- run `npx expo start -c` OR
-- run `cd android & ./gradlew clean` (ensure that you have gradle installed)
+#### 🔒 Android 16 "Baklava" (API 35) - ARM64 Emulator
+- App could **only read/write files it created itself**.
+- App **could not read or overwrite** the foreign file `secret_from_adb.txt`.
+- ➕ Scoped Storage is **enforced by default**, isolating the app's access to only its own files.
 
 ---
 
-## Create an apk
+## ⚠️ Security Implication
 
-```bash
-npx expo run:android --variant release
-```
+On older Android versions (≤ 9), granting the `WRITE_EXTERNAL_STORAGE` permission gives apps:
+- **Full access** to all files in shared storage
+- The ability to **read, modify, or delete** files from other sources (e.g. via ADB, another app)
 
----
-
-## 🔄 Common Commands
-
-- **Start Expo project with cleared cache**: `npx expo start -c`
-- **Start Expo project**: `expo start`
-- **Run on Android Emulator**: `expo start --android`
-- **Run on iOS Simulator (Mac only)**: `expo start --ios`
-- **Build Android APK** (optional): `npx expo build:android`
-- **Build iOS app** (Mac + Apple Developer account): `npx expo build:ios`
+This increases the risk of:
+- Data exfiltration
+- Malicious overwrite
+- Privilege misuse
 
 ---
 
-## 📁 Project Structure
+## 🛡️ Recommended Control
 
-```
-├── app
-│   ├── home.jsx
-│   ├── index.jsx
-│   └── signup.jsx
-├── assets
-│   ├── adaptive-icon.png
-│   ├── favicon.png
-│   ├── icon.png
-│   └── splash-icon.png
-├── docs
-│   ├── diagrams
-│   │   └── SignupDiagram.puml
-│   └── pngOfDiagrams
-│       └── SignupDiagram.png
-└── lib
-    └── supabase.js
-```
+To mitigate this risk:
+- **Target newer Android versions** (API 30+)
+- Encourage users to **upgrade their OS** to Android 11+ where Scoped Storage is **strictly enforced**
+- Understand that even if `WRITE_EXTERNAL_STORAGE` is granted, its scope is **limited** on newer Android versions
 
 ---
 
-## ❓ Troubleshooting
+## 📂 File Paths Used in Test
 
-- **Expo Go stuck or blank screen?** → Close and restart Expo Go, clear cache: `expo start -c`
-- **Android Emulator not detected?** → Make sure it's started via Android Studio **before** running `expo start --android`.
-- **Dependencies missing or breaking?** → Try deleting `node_modules` and `package-lock.json` or `yarn.lock`, then reinstall:
-
-```bash
-rm -rf node_modules
-rm package-lock.json # or yarn.lock
-npm install
-```
+| File Description          | Path |
+|---------------------------|------|
+| App-specific file         | `/storage/emulated/0/Android/data/<package>/files/test_app_specific.txt` |
+| Shared external file      | `/storage/emulated/0/Download/test_shared.txt` |
+| ADB-injected foreign file | `/storage/emulated/0/Download/secret_from_adb.txt` |
 
 ---
+
+## ✅ Summary
+
+This branch highlights how **Scoped Storage** fundamentally shifts Android’s storage security model and how older permissions like `WRITE_EXTERNAL_STORAGE` become more controlled in modern Android.
+
+> 🔐 **Upgrade your target SDK and device OS to ensure your app is protected by default Scoped Storage controls.**
+
+## Author
+
+**Nicholas Tok**
+
