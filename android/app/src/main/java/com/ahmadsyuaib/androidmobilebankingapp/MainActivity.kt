@@ -17,27 +17,6 @@ class MainActivity : ReactActivity() {
     // This is required for expo-splash-screen.
     setTheme(R.style.AppTheme);
     super.onCreate(null)
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-      showAlertDialog()
-    }
-  }
-
-  /**
-   * Called when the activity is first created.
-   * To inform users about their app security state, and functionality
-   */
-  private fun showAlertDialog() {
-    AlertDialog.Builder(this)
-      .setTitle("Android Update Required")
-      .setMessage("Some features of this app require Android 13 or higher. " +
-                  "Please update your device to the latest version of Android to ensure full functionality.")
-      .setPositiveButton("OK") {
-        dialog, _ ->
-          dialog.dismiss()
-          // finish()
-      }
-      .setCancelable(false)
-      .show()
   }
 
   /**
