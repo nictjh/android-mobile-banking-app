@@ -99,8 +99,8 @@ android {
             }
         }
         applicationId 'com.ahmadsyuaib.androidmobilebankingapp'
-        minSdkVersion rootProject.ext.minSdkVersion //28 /* Minimum SDK version for Android 13 (Still supported by Google Play as of 09/07/2025) */
-        targetSdkVersion rootProject.ext.targetSdkVersion
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion 33 //Changed to meet Google Play requirements, 33 supports Scoped Storage by default
         versionCode 1
         versionName "1.0.0"
 
@@ -128,7 +128,7 @@ android {
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
             crunchPngs (findProperty('android.enablePngCrunchInReleaseBuilds')?.toBoolean() ?: true)
-            // debuggable true // SET to FALSE
+            debuggable false //Set to false to disable
         }
 
     }
