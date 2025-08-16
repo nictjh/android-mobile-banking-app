@@ -1,0 +1,335 @@
+@startuml SignInProcess
+!theme plain
+
+' This PlantUML diagram illustrates the comprehensive process of signing in a user through a mobile application using Supabase for authentication.
+' It includes interactions between the mobile app, Supabase backend, and the database, as well as the flow of data and control through various components.
+
+box "Mobile App" #GreenYellow
+  actor User
+  participant mobile_app
+  participant helpers.ts
+end box
+
+User -> mobile_app : (Start) User Signs in with email and password
+activate mobile_app
+
+box "Mobile App sqliteDatabase" #PaleGreen
+  participant AsyncStorageModule
+  participant RKStorage
+end box
+
+box "Supabase/Auth" #LightYellow
+  participant main.go
+  participant root_cmd.go
+  participant serve_cmd.go
+  participant api.go
+  participant token.go
+  participant dial.go
+  participant user.go
+  participant helpers.go
+  participant refresh_token.go
+  participant sessions.go
+  participant jwks.go
+  participant sql.go
+  ' double check on sql.go '
+end box
+
+mobile_app -> main.go : HTTP POST '/../token?grant_type=password/'
+activate main.go
+
+main.go -> root_cmd.go : (1) RootCommand()
+activate root_cmd.go
+
+root_cmd.go -> serve_cmd.go : (2) serve()
+activate serve_cmd.go
+
+' This section is server side so doesnt need to be included '
+' serve_cmd.go -> configuration.go : LoadGlobalFromEnv()
+' activate configuration.go
+' return db configurations
+
+' serve_cmd.go -> dial.go : Dial()
+' activate dial.go
+' return connection
+
+serve_cmd.go -> api.go : (3) NewAPIWithVersion()
+activate api.go
+
+api.go -> token.go : (4) Token()
+activate token.go
+
+token.go -> token.go : (5) ResourceOwnerPasswordGrant()
+activate token.go
+
+' this part helps reads JSON body and put into Go Struct '
+token.go -> helpers.go : (6) retrieveRequestParams()
+activate helpers.go
+return
+
+token.go -> helpers.go : (7) requestAud()
+activate helpers.go
+return
+
+token.go -> user.go : (8) FindUserByEmailAndAudience()
+activate user.go
+
+user.go -> user.go : (9) findUser()
+activate user.go
+
+box "GoBuffalo" #LightBlue
+  participant executors.go
+  participant query.go
+  participant finders.go
+  participant dialect_postgresql.go
+  participant dialect_common.go
+  participant store.go
+  participant connection.go
+end box
+
+' query.go is from GoBuffalo '
+user.go -> query.go : (A) Eager()
+activate query.go
+return connection
+
+user.go -> connection.go : (A) Q()
+activate connection.go
+return connection
+
+user.go -> query.go : (A) Where()
+activate query.go
+return query
+
+user.go -> finders.go : (B) First()
+activate finders.go
+finders.go -> dialect_postgresql.go : (C) SelectOne()
+activate dialect_postgresql.go
+
+dialect_postgresql.go -> dialect_common.go : (D) genericSelectOne()
+activate dialect_common.go
+
+dialect_common.go -> store.go : (E) Get()
+activate store.go
+
+box "sqlx" #LightCyan
+  participant sqlx_context.go
+  participant named_context.go
+  participant sqlx.go
+  participant named.go
+end box
+
+store.go -> sqlx_context.go : (i) GetContext()
+activate sqlx_context.go
+sqlx_context.go -> sqlx_context.go : (ii) QueryRowxContext()
+activate sqlx_context.go
+
+box "Database" #LightGreen
+  participant database
+end box
+
+sqlx_context.go -> database : SQL query
+activate database
+return row
+
+sqlx_context.go -> sqlx.go : (iii) scanAny()
+activate sqlx.go
+return
+
+return
+return
+return
+return
+return
+return
+return &user
+return
+
+token.go -> user.go : (10) Authenticate()
+activate user.go
+return
+' allows for rollback '
+token.go -> dial.go : (11) Transaction()
+activate dial.go
+
+dial.go -> token.go : (12)issueRefreshToken()
+activate token.go
+
+token.go -> dial.go : (11) Transaction()
+activate dial.go
+
+dial.go -> refresh_token.go : (13) GrantAuthenticatedUser()
+activate refresh_token.go
+
+refresh_token.go -> refresh_token.go : (14) createRefreshToken()
+activate refresh_token.go
+
+refresh_token.go -> executors.go : (F) Create() [inserts a new Session]
+activate executors.go
+
+executors.go -> dialect_postgresql.go : (G) Create()
+activate dialect_postgresql.go
+
+dialect_postgresql.go -> dialect_common.go : (H) genericCreate()
+activate dialect_common.go
+
+dialect_common.go -> store.go : (I) PrepareNamed()
+activate store.go
+
+store.go -> sqlx_context.go : (J) PrepareNamedContext()
+activate sqlx_context.go
+
+sqlx_context.go -> named_context.go : (iv) prepareNamedContext()
+activate named_context.go
+
+named_context.go -> sqlx_context.go : (v) PreparexContext()
+activate sqlx_context.go
+return
+return
+return
+return insert statement
+
+dialect_common.go -> named_context.go : (vi) ExecContext()
+activate named_context.go
+
+named_context.go -> sql.go : (15) ExecContext()
+activate sql.go
+
+sql.go -> database
+activate database
+return
+return
+return
+return
+return
+return
+
+refresh_token.go -> executors.go : (F) Create() [inserts new refresh token]
+activate executors.go
+
+executors.go -> dialect_postgresql.go : (G) Create()
+activate dialect_postgresql.go
+
+dialect_postgresql.go -> store.go : (I) PrepareNamed()
+activate store.go
+
+store.go -> sqlx_context.go : (J) PrepareNamedContext()
+activate sqlx_context.go
+
+sqlx_context.go -> named_context.go : (iv) prepareNamedContext()
+activate named_context.go
+
+named_context.go -> sqlx_context.go : (v) PreparexContext()
+activate sqlx_context.go
+return
+return
+return
+return insert statement
+
+
+
+dialect_postgresql.go -> named.go : (vii) QueryRow()
+activate named.go
+
+named.go -> sqlx.go : (viii) QueryRowx()
+activate sqlx.go
+
+sqlx.go -> database
+activate database
+return row
+
+return
+return
+return
+
+'row information is returned and scanned into tokenStruct '
+
+return
+return Refreshtoken
+return
+
+dial.go -> token.go : (16) generateAccessToken()
+activate token.go
+
+token.go -> sessions.go: (17) FindSessionsByID()
+activate sessions.go
+
+sessions.go -> query.go : (K) RawQuery()
+activate query.go
+return query
+sessions.go -> finders.go : (B) First()
+activate finders.go
+
+finders.go -> dialect_postgresql.go : (C) SelectOne()
+activate dialect_postgresql.go
+
+dialect_postgresql.go -> dialect_common.go : (D) genericSelectOne()
+activate dialect_common.go
+
+dialect_common.go -> store.go : (E) Get()
+activate store.go
+
+store.go -> sqlx_context.go : (i) GetContext()
+activate sqlx_context.go
+
+sqlx_context.go -> sqlx_context.go : (ii) QueryRowxContext()
+activate sqlx_context.go
+
+sqlx_context.go -> database : Finds session
+activate database
+return session exists
+
+return
+return
+return
+return
+return
+return
+return session exists
+
+token.go -> jwks.go : (18) signJwt()
+activate jwks.go
+return signedJwt : String
+
+return accessToken : String
+return
+return
+return
+return
+return
+return
+return
+return
+return HTTP 200 OK AuthTokenResponse
+
+
+' This section saves and loads the session in the mobile app triggering updates in the UI '
+mobile_app -> mobile_app : (CC2) saveSession(data.session)
+activate mobile_app
+mobile_app -> helpers.ts : (CC3) setItemAsync()
+activate helpers.ts
+helpers.ts -> AsyncStorageModule : (db1) setItem()
+activate AsyncStorageModule
+AsyncStorageModule -> RKStorage : (db2) execute()
+activate RKStorage
+return
+return
+return
+return
+mobile_app -> mobile_app : (CC4) notifyAllSubscribers('SIGNED_IN', data.session)
+activate mobile_app
+return
+return (End) UI refreshes and shows user is signed in
+
+mobile_app -> mobile_app : (CC5) _handleVisibilityChange()
+activate mobile_app
+mobile_app -> mobile_app : (CC6) startAutoRefresh()
+activate mobile_app
+mobile_app -> mobile_app : (CC7) _startAutoRefresh()
+activate mobile_app
+mobile_app -> mobile_app : (CC8) _autoRefreshTokenTick()
+activate mobile_app
+return
+return
+return
+return
+
+@enduml
