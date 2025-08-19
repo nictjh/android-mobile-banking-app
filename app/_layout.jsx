@@ -1,4 +1,4 @@
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
@@ -6,6 +6,7 @@ export default function RootLayout() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const segments = useSegments();
 
   useEffect(() => {
     // Check initial auth state
@@ -25,12 +26,19 @@ export default function RootLayout() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Simple authentication redirect
+  // Simple authentication protection
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
+    if (isLoading) return;
+
+    const currentRoute = segments[0];
+    const protectedRoutes = ['home', 'userinfo', 'localAccCheck'];
+
+    if (!isAuthenticated && protectedRoutes.includes(currentRoute)) {
+      router.replace('/');
+    } else if (isAuthenticated && (currentRoute === 'index' || !currentRoute)) {
       router.replace('/home');
     }
-  }, [isAuthenticated, isLoading]);
+  }, [isAuthenticated, isLoading, segments]);
 
   if (isLoading) {
     return null; // Or a loading screen component
