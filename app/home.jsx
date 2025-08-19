@@ -125,8 +125,19 @@ import { createPOSBAccount, getAccountDetails } from '../lib/services/accService
     };
 
     const handleScanPay = () => {
-        // TODO: Add Scan & Pay functionality
         console.log('Scan & Pay pressed');
+        if (accountDetails) {
+            router.push({
+                pathname: '/scanScreen',
+                params: {
+                    userAccountNumber: accountDetails.account_number,
+                    userAccountBalance: accountDetails.current_balance,
+                }
+            });
+        } else {
+            router.push('/scanScreen');
+        }
+
     };
 
     const handleFundTransfer = () => {

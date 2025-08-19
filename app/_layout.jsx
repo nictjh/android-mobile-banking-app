@@ -31,7 +31,7 @@ export default function RootLayout() {
     if (isLoading) return;
 
     const currentRoute = segments[0];
-    const protectedRoutes = ['home', 'userinfo', 'localAccCheck'];
+    const protectedRoutes = ['home', 'userinfo', 'localAccCheck', 'scanScreen'];
 
     if (!isAuthenticated && protectedRoutes.includes(currentRoute)) {
       router.replace('/');
@@ -83,6 +83,15 @@ export default function RootLayout() {
           gestureEnabled: false, // Disable swipe back gesture
         }}
       />
+
+        <Stack.Screen
+            name="scanScreen"
+            options={{
+                headerShown: false,
+                gestureEnabled: false, // Disable swipe back gesture
+            }}
+        />
+
     </Stack>
   );
 }
