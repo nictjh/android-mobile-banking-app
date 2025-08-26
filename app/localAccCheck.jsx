@@ -145,6 +145,7 @@ export default function LocalAccCheck() {
               <TextInput
                 style={styles.textInput}
                 value={accountNumber}
+                contextMenuHidden={true}
                 onChangeText={setAccountNumber}
                 placeholder="00112345678"
                 keyboardType="numeric"

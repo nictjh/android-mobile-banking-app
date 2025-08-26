@@ -18,7 +18,7 @@ export default function Login() {
     }
 
     setLoading(true)
-    
+
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -48,6 +48,7 @@ export default function Login() {
 
       <TextInput
         style={styles.input}
+        contextMenuHidden={true}
         placeholder="Email"
         value={email}
         onChangeText={setEmail}
@@ -56,6 +57,7 @@ export default function Login() {
       />
       <TextInput
         style={styles.input}
+        contextMenuHidden={true}
         placeholder="Password"
         value={password}
         onChangeText={setPassword}
