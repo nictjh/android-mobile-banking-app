@@ -32,7 +32,7 @@ export default function Signup() {
         'Signup Success',
         'Please check your email to confirm your account.'
       )
-      router.replace('/home') 
+      router.replace('/home')
     }
   }
 
