@@ -1,0 +1,154 @@
+@startuml SignOutDiagram
+
+actor Client
+
+box "Client" #LightBlue
+  participant "GoTrueClient.ts\n(signOut)" as ClientSignOut
+  participant "GoTrueClient.ts\n(_signOut)" as Client_SignOut
+  participant "GoTrueAdminApi.ts\n(signOut)" as AdminSignOut
+  participant "GoTrueAdminApi.ts\n(_request)" as Request
+end box
+
+box "Server" #LightGreen
+  participant "main.go\n(main)" as Main
+  participant "root_cmd.go\n(RootCommand)" as RootCommand
+  participant "serve_cmd.go\n(serve)" as Serve
+  participant "api.go\n(NewAPIWithVersion)" as NewAPI
+  participant "auth.go\n(requireAuthentication)" as RequireAuth
+  participant "auth.go\n(extractBearerToken)" as ExtractToken
+  participant "auth.go\n(parseJWTClaims)" as ParseJWT
+  participant "parser.go\n(ParseWithClaims)" as ParseWithClaims
+  participant "parser.go\n(ParseUnverified)" as ParseUnverified
+  participant "parser.go\n(splitToken)" as SplitToken
+  participant "auth.go\n(maybeLoadUserOrSession)" as MaybeLoadUser
+
+  participant "logout.go\n(Logout)" as LogoutHandler
+  participant "context.go\n(getSession)" as GetSession
+  participant "context.go\n(getUser)" as GetUser
+  participant "sessions.go\n(Logout)" as LogoutSession
+end box
+
+box "Database" #LightYellow
+  participant "executors.go\n(Exec)" as Exec
+  participant "sql.go\n(tx.Exec)" as TxExec
+  participant "sql.go\n(ExecContext)" as ExecContext
+  participant "sql.go\n(execDC)" as ExecDC
+  participant "ctxutil.go\n(ctxDriverExec)" as CtxDriverExec
+  participant "Connection.go\n(Exec)" as ConnExec
+  participant "Connection.go\n(exec)" as ConnExecLow
+  participant "packets.go\n(writeCommandPacketStr)" as WritePacket
+end box
+
+Client -> ClientSignOut : signOut()
+activate ClientSignOut
+  ClientSignOut -> Client_SignOut : _signOut()
+  activate Client_SignOut
+    note right of Client_SignOut
+    1. Calls signOut API  
+    2. Removes local session token
+    end note
+
+    Client_SignOut -> AdminSignOut : signOut(accessToken, scope="global")
+    activate AdminSignOut
+      AdminSignOut -> Request : POST `${this.url}/logout?scope=global`
+      activate Request
+        Request -> Main : main()   // Request enters main()
+        activate Main
+          Main -> RootCommand : RootCommand()
+          activate RootCommand
+            RootCommand -> Serve : serve(ctx)
+            activate Serve
+              Serve -> NewAPI : NewAPIWithVersion(config, db,...)
+              activate NewAPI
+                NewAPI -> RequireAuth : requireAuthentication(w,r)
+                activate RequireAuth
+                  RequireAuth -> ExtractToken : extractBearerToken(r)
+                  activate ExtractToken
+                    ExtractToken -> ParseJWT : parseJWTClaims(token,r)
+                    activate ParseJWT
+                      ParseJWT -> ParseWithClaims : ParseWithClaims()
+                      activate ParseWithClaims
+                        ParseWithClaims -> ParseUnverified : ParseUnverified(token, claims)
+                        activate ParseUnverified
+                          ParseUnverified -> SplitToken : splitToken(token)
+                          activate SplitToken
+                          SplitToken --> ParseUnverified : parts[0..2]
+                          deactivate SplitToken
+                        ParseUnverified --> ParseWithClaims : token struct
+                        deactivate ParseUnverified
+                      ParseWithClaims --> ParseJWT
+                      deactivate ParseWithClaims
+                      ParseJWT -> MaybeLoadUser : maybeLoadUserOrSession(ctx)
+                      activate MaybeLoadUser
+                      MaybeLoadUser --> ParseJWT
+                      deactivate MaybeLoadUser
+                    deactivate ParseJWT
+                  ExtractToken --> RequireAuth
+                  deactivate ExtractToken
+                RequireAuth -> LogoutHandler : Logout(w,r)
+                activate LogoutHandler
+                  LogoutHandler -> GetSession : getSession(ctx)
+                  activate GetSession
+                  GetSession --> LogoutHandler
+                  deactivate GetSession
+
+                  LogoutHandler -> GetUser : getUser(ctx)
+                  activate GetUser
+                  GetUser --> LogoutHandler
+                  deactivate GetUser
+
+                  LogoutHandler -> LogoutSession : Logout(storageConn, sessionId)
+                  activate LogoutSession
+
+                    == Database ==
+                    LogoutSession -> Exec : Exec("DELETE ... WHERE id=?")
+                    activate Exec
+                      Exec -> TxExec : tx.Exec()
+                      activate TxExec
+                        TxExec -> ExecContext : ExecContext(ctx, query, args)
+                        activate ExecContext
+                          ExecContext -> ExecDC : execDC(ctx, dc, release, query, args)
+                          activate ExecDC
+                            ExecDC -> CtxDriverExec : ctxDriverExec(ctx, execerCtx, execer, query, nvdargs)
+                            activate CtxDriverExec
+                              CtxDriverExec -> ConnExec : Exec(query, args)
+                              activate ConnExec
+                                ConnExec -> ConnExecLow : exec(query)
+                                activate ConnExecLow
+                                  ConnExecLow -> WritePacket : writeCommandPacketStr(command, arg)
+                                  activate WritePacket
+                                  WritePacket --> ConnExecLow
+                                  deactivate WritePacket
+                                ConnExecLow --> ConnExec
+                                deactivate ConnExecLow
+                              ConnExec --> CtxDriverExec
+                              deactivate ConnExec
+                            CtxDriverExec --> ExecDC
+                            deactivate CtxDriverExec
+                          ExecDC --> ExecContext
+                          deactivate ExecDC
+                        ExecContext --> TxExec
+                        deactivate ExecContext
+                      TxExec --> Exec
+                      deactivate TxExec
+                    Exec --> LogoutSession
+                    deactivate Exec
+                  LogoutSession --> LogoutHandler
+                  deactivate LogoutSession
+                LogoutHandler --> RequireAuth
+                deactivate LogoutHandler
+                RequireAuth --> NewAPI
+                deactivate RequireAuth
+              NewAPI --> Serve
+              deactivate NewAPI
+            Serve --> RootCommand
+            deactivate Serve
+          RootCommand --> Main
+          deactivate RootCommand
+        Main --> Request : return response   // Response returns from main()
+        deactivate Main
+      Request --> AdminSignOut
+      deactivate Request
+    AdminSignOut --> Client_SignOut
+    deactivate AdminSignOut
+  Client_SignOut -->
