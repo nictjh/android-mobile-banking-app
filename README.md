@@ -13,6 +13,16 @@ The demonstration focuses on how different Android versions handle access to fil
 
 ---
 
+## 🎬 Video Demo
+
+Watch the threat demonstration of granting WRITE_EXTERNAL_STORAGE permissions in action:
+
+
+https://github.com/user-attachments/assets/140a8435-dd9a-45c1-9279-d00a6839bd08
+
+
+---
+
 ## Test Setup
 
 ### 🔧 File Preparation
