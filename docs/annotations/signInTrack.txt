@@ -1,0 +1,460 @@
+signInWithPassword(credentials : SignInWithPasswordCredentials)
+type SignInWithPasswordCredentials{
+      /** The user's email address. */
+      email: string
+      /** The user's password. */
+      password: string
+      options?: {
+        /** Verification token received when the user completes the captcha on the site. */
+        captchaToken?: string
+    }
+}
+
+GOTRUE_URL = 'http://localhost:9999' -> routes to supabase/auth
+
+
+
+RootCommand().ExecuteContext(execCtx) -> the ExecuteContext binds the resulting application such that it can detect cancel signals.
+- returns: rootCommand object (cobraCommand)
+
+serve(ctx)
+- params: ctx Context [the execCtx is being passed into this]
+- Loads config from flags if there is any specified
+
+- calls LoadGlobalFromEnv()
+    - returns a GlobalConfiguration object, containing (important: DB info, JWT settings, Email Config etc.)
+
+- calls storage.Dial(config) -> configures a database Driver that will provide the connection.
+    - params: GlobalConfiguration object
+    - returns a Connection object to the db
+
+- calls NewAPIWithVersion()
+    - params: config, db, version (GoTrue version for logging), opt (Rate limiters if any config)
+    - routes to r.With(api.verifyCaptcha).Post("/token", api.Token)
+
+        - api.Token calls Token()
+            - params: HTTP responseWriter, HTTP request
+            - returns: the handler call
+
+                - calls ResourceOwnerPasswordGrant()
+                    - params: Context, HTTP responseWriter, HTTP request
+
+                    - calls retrieveRequestParms()
+                        - params: HTTP request, params
+                        - retrieves and parses it into params
+
+                    - calls requestAud()
+                        - returns: JWT
+
+                    - calls FindUserByEmailAndAudience()
+                        - params: db, params.Email, aud
+
+                        - calls findUser()
+                            - params: connection, query_string, args...
+                            - calls Eager() in query.go (GoBuffalo) -> wraps query with eager loading, any fields marked will be loaded immediately
+                                - returns: connection
+                            - calls Q() in connection.go (GoBuffalo) ->  fresh query builder
+                                - returns : connection
+                            - calls Where() in query.go (GoBuffalo) -> appends a where clause into query
+                                - params: query_string, args...
+                                - returns: Query object
+                            - calls First() in finders.go (GoBuffalo) -> finds first record in database that matches query
+
+                                - calls SelectOne()
+                                    - params: query.connection, model (user object), query
+
+                                    - calls genericSelectOne()
+                                        - params: connection, model, query
+
+                                        - calls Get() from connection in store.go
+                                            - params: dest (model.Values), query, args...
+
+                                            - calls GetContext() in sqlx_context.go
+                                                - params: context, destination (model.Values), queryString, args...
+
+                                                - calls QueryRowxContext()
+                                                    - params: context, query, args
+                                                    - returns: a row of user data
+
+                                                - calls scanAny() in sqlx.go
+                                                    - params: dest (model.Values)
+                                                    - map the resulting values into the User struct for later comparison
+                                                    - returns: nothing~~
+
+                                                - returns: nothing~~
+
+                                            - returns: nothing~~
+
+                                        - returns: nothing~~
+
+                                    - returns: nothing~~
+
+                                - returns: nothing~~
+
+                            - returns: User object filled with all the information from email
+
+                        - returns: nothing~~
+
+                    - calls Authenticate() in user.go
+                        - params: context, connection, password(entered by user), decryption_keys, encrypt, encryptionKeyID
+
+                        - call compareHashAndPassword()
+                            - params: context, hash(decrypted hash), password(entered by User)
+
+
+                        - returns: isValidPass, shouldReEncrypt, error
+
+
+
+    - returns: an API instance
+
+
+
+
+
+
+
+Authenticate()
+- Called from 'token.go'
+- method located in 'user.go'
+- returns an error if it doesnt pass
+- Functions:
+    - Calls CompareHashAndPassword() located in 'password.go', returns an error if it doesnt match
+    - Calls ShouldReEncrypt in 'crypto.go'
+
+** GrantParams is the OAuth type
+
+1st Transaction() -> creates a SQL transaction (if all goes well, commit, if not will can rollback to prevent errors)
+- Called from 'token.go'
+- method located in 'dial.go'
+- returns an error
+- Functions:
+    - Calls Transaction() in 'connection.go' [GoBuffalo]
+    - Calls issueRefreshToken() in 'token.go'
+
+IssueRefreshToken()
+- params: http.Request, connection, models.User, authMethod, grantParams
+- returns AccessTokenResponse
+Functions:
+    - Calls 2nd Transaction()
+
+2nd Transaction()
+- params: Connection
+- Function: 
+    - Calls GrantAuthenticatedUser()
+
+GrantAuthenticatedUser()
+- method located in 'refresh_token.go'
+- params: connection, User, grantParams
+- Function:
+    - calls createRefreshToken()
+
+createRefreshToken()
+- located in 'refresh_token.go'
+- params: connection, user, oldToken, GrantParams
+- returns newToken
+- Function: 
+    - Calls 1st Create() -> Create new session and Insert it into session table
+    - Store the session into the Token
+    - Calls 2nd Create() -> Store the refresh token into the database
+
+
+1st Create()
+- params: session
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+https://supabase.com/docs/guides/auth/sessions
+
+
+Client Side:
+(Start) signInWithPassword() - 'GoTrueClient.ts'
+	- Params: email : string, password : string
+	- Returns: AuthTokenResponsePassword [user : User, session : Session]
+	- Function: Sends a POST request with "../token.."
+
+
+-- POST request will be directed into 'main.go' of supabase/auth --
+
+Auth Server:
+(1) RootCommand() - '/cmd/root_cmd.go'
+	- Params: nil
+	- Returns: cobraCommand [cobraCommand is core struct for commands to be ran]
+	- Function: adds the serve, migrate and admin subcommands and runs it
+
+(2) serve() - '/cmd/serve_cmd.go'
+	- Params: ctx : Context [The context of receiving signals to cancel gracefully]
+	- Returns: void
+	- Function: loads global config, connects to db and builds API handler
+
+(3) NewAPIWithVersion() - '/internal/api/api.go'
+	- Params: globalConfig : GlobalConfiguration, db : Connection, version : string, opts... : Option
+	- Returns: API
+	- Function: handles the routing of the call, in this case it will go to '/token' calling api.Token
+
+(4) Token() - '/internal/api/token.go'
+	- Params: w : ResponseWriter, r : httpRequest
+	- Returns: helper function
+	- Function: set the correct handler for [password]
+
+(5) ResourceOwnerPasswordGrant() - '/internal/api/token.go'
+	- Params: ctx : Context, w : ResponseWriter, r : httpRequest
+	- Returns: sendJSON() fn / error
+	- Function: read the JSON body of request, call to DB, authenticate and issue refresh token.
+
+(6) retrieveRequestParams() - '/internal/api/helpers.go'
+	- Params: r : httpRequest, params : PasswordGrantParams
+	- Returns: nil / error
+	- Function: reads JSON body of Request and fills in params struct
+
+(7) requestAud() - '/internal/api/helpers.go'
+	- Params: ctx : Context, r : httpRequest
+	- Returns: string
+	- Function: finds out which audience the incoming Request is for, so rules can be applied for different audiences like access to db...
+
+(8) FindUserByEmailAndAudience() - 'internal/api/models/user.go'
+	- Params: db : Connection, email : String, aud : String
+	- Returns: User
+	- Function: call the helper function
+
+(9) findUser() - 'internal/api/models/user.go'
+	- Params: tx : Connection, query : String, args... : interface [essentially the values to pass into the string]
+	- Returns: User
+	- Function: Call to db and returns the first matched record User
+
+
+GoBuffalo Side:
+
+(A) Eager().Q().Where() - 'query.go, connection.go, query.go' respectively
+	- Params: for Where - query : Stirng, args... : interface
+	- Returns: Query [compatible with Pop]
+	- Function: Builds a query that is compativle with Pop
+
+(B) First() - 'finders.go'
+	- Params: model : interface [User struct to populate]
+	- Returns: nil / error
+	- Function: calls db with query and returns the first record that matches
+
+(C) SelectOne() - 'dialect_postgresql.go'
+	- Params: c : Connection, model : User struct, query: Query
+	- Returns: nil / error
+	- Function: calls helper function
+
+(D) genericSelectOne() - 'dialect_common.go'
+	- Params: c : Connection, model : User struct; query : Query
+	- Returns nil / error
+	- Function: helper function to chain calls
+
+(E) Get() - 'store.go'
+	- Params: modelValue : User struct, sqlQuery: String, args... : interface [values for query]
+	- Returns: nil / error
+	- Function: calls extension library function
+
+
+sqlx library - enhance the standard database/sql package in Go (Golang) by providing additional features and convenience for database interactions.
+
+(i) GetContext() - 'sqlx_context.go'
+	- Params: ctx : Context, dest : User struct, query : Query, args... : interface
+	- Returns: nil / error
+	- Function: Runs the query and scans the query results
+
+(ii) QueryRowxContext() - 'sqlx_conext.go'
+	- Params: ctx : Connection, query : Query, args... : interface
+	- Returns: Row [row of data]
+	- Function: Executes the query to the db
+
+(iii) scanAny() - 'sqlx.go'
+	- Params: dest : User struct, structOnly : boolean
+	- Returns: nil / error
+	- Function: takes the row and scans it into the user struct to be passed back
+
+
+(10) Authenticate() - 'user.go'
+	- Continued call from (5)
+	- Params: ctx : Context, tx : Connection, password : String, decryptionKeys : map[String], encrypt : bool, encryptionKeyID : String
+	- Returns: isValidPassword : bool, shouldReEncrypt : bool, err : error
+	- Function: compares hash and password and checks whether need to ReEncrypt
+
+(11) Transaction() - 'dial.go'
+	- Params: func(Connection)
+	- Returns: Connection
+	- Function: safe wrapper function that commits if successful and rolls back any operations in db if there are errors
+
+(12) issueRefreshToken() - 'token.go'
+	- Params: r : httpRequest, conn : Connection, user : User, authenticationMethod : AuthenticationMethod, grantParams : GrantParams
+	- Returns: AccessTokenResponse (See Notes)
+	- Function: Create refreshToken, create Access Token and return
+
+(13) GrantAuthenticatedUser() - 'refresh_token.go'
+	- Params: tx : Connection, user : User, params : GrantParams
+	- Returns: RefreshToken
+	- Function: creates refresh token
+
+(14) createRefreshToken() - 'refresh_token.go'
+	- Params: tx : Connection, user : User, oldToken : RefreshToken, params : GrantParams
+	- Returns: RefreshToken
+	- Function: creates a new session for the user
+
+
+(F) Create() - 'executors.go'
+	- Params: model : interface [newSession]
+	- Returns: nil / error
+	- Function: calls another Create fn
+
+(G) Create() - 'dialect_postgresql.go'
+	- Params: c : Connection, m : Session, cols : columns
+	- Returns: nil / error
+	- Function: check PrimaryKeyType and routes to the correct calls
+
+(H) genericCreate() - 'dialect_common.go'
+	- Params: c : Connection, model : Model, col : columns, quoter : Quoter
+	- Returns: nil / error
+	- Function: calls PrepareNamed fn
+
+(I) PrepareNamed() - 'store.go'
+	- Params: query : String
+	- Returns: contextStore [something like statement]
+	- Function: prepare the query
+
+(J) PrepareNamedContext() - 'sqlx_context.go'
+	- Params: ctx : Context, query : String
+	- Returns: NamedStmt
+
+
+(iv) prepareNamedContext() - 'named_context.go'
+	- Params: ctx : Context, p : namedPreparerContext, query : String
+	- Returns: NamedStmt
+
+(v) PreparexContext() - 'sqlx_context.go'
+	- Params: ctx : Context, p : preparerContext, query : String
+	- Returns: Stmt
+
+
+(vi) ExecContext() - 'named_context.go'
+	- Params: ctx : Context, arg : interface
+	- Returns: sql.Result
+
+
+(15) ExecContext() - 'sql.go'
+	- Params: ctx : Context, arg : interface
+	- Returns: Result
+	- Function: execute the query statement
+
+
+(vii) QueryRow() - 'named.go'
+	- Params: arg : interface
+	- Returns: Row
+	- Functions: executes named statement
+
+
+(viii) QueryRowx() - 'sqlx.go'
+	- Params: args : interface
+	- Returns: Row
+
+
+(16) generateAccessToken() - 'token.go'
+	- Params: r : httpRequest, tx : Connection, models : User, sessionId : uuid, authMethod : AuthenticationMethod
+	- Returns: tokenString : String, expireWhen : int, err : error
+	- Function: FindSessionByID to verify validity and returns a signed jwt string
+
+(17) findSessionByID() - 'sessions.go'
+	- Params: tx : Connection, id : Session.uuid, forUpdate : bool
+	- Returns: Session
+	- Functions: Access token generation is blocked, if session expired
+
+
+(K) RawQuery() - 'query.go'
+	- Params: stmt : String, args... : interface
+	- Returns: Query
+	- Function: uses the building feature of Pop to create the query
+
+(18) signJwt() - 'jwks.go'
+	- Params: JWTconfig, Claims
+	- Returns: String (Access Token)
+	- Functions: Get private signing key and algo, cryptographically sign the user information (containing tokens)
+
+
+(Step 2) _saveSession - 'GoTrueClient.ts'
+	- Params: Session
+	- Returns: nil
+	- Functions: stores tokens in localStorage
+
+(Step 3) _notifyAllSubscribers() - 'GoTrueClient.ts'
+	- Params: String, Session
+	- Returns: nil
+	- Functions: broadcasts to all listeners that there is an update in AuthState
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Notes of return objects:
+
+** This is the actual object being sent back from the API call **
+&AccessTokenResponse {
+	Token                string             `json:"access_token"` /* JWT (signed string) */
+	TokenType            string             `json:"token_type"`   // Bearer
+	ExpiresIn            int                `json:"expires_in"`
+	ExpiresAt            int64              `json:"expires_at"`
+	RefreshToken         string             `json:"refresh_token"`
+	User                 *models.User       `json:"user"`
+	ProviderAccessToken  string             `json:"provider_token,omitempty"`
+	ProviderRefreshToken string             `json:"provider_refresh_token,omitempty"` /* Find out what the fk is this */
+	WeakPassword         *WeakPasswordError `json:"weak_password,omitempty"`
+}
+
+
+&RefreshToken {
+	ID int64 `db:"id"`
+	Token string `db:"token"` /* This is the refreshToken, which is a crypto.Alphanumeric(12) */
+	UserID uuid.UUID `db:"user_id"`
+	Parent    storage.NullString `db:"parent"`
+	SessionId *uuid.UUID         `db:"session_id"`
+	Revoked   bool      `db:"revoked"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+	DONTUSEINSTANCEID uuid.UUID `json:"-" db:"instance_id"`
+}
+
+
+type AccessTokenClaims struct {
+	Email                         string                 `json:"email"`
+	jwt.RegisteredClaims
+	Phone                         string                 `json:"phone"`
+	AppMetaData                   map[string]interface{} `json:"app_metadata"`
+	UserMetaData                  map[string]interface{} `json:"user_metadata"`
+	Role                          string                 `json:"role"`
+	AuthenticatorAssuranceLevel   string                 `json:"aal,omitempty"`
+	AuthenticationMethodReference []models.AMREntry      `json:"amr,omitempty"`
+	SessionId                     string                 `json:"session_id,omitempty"`
+	IsAnonymous                   bool                   `json:"is_anonymous"`
+}
+
+
+
+
+
+
+
