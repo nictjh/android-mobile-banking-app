@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase.js';
 import { getUserProfile } from '../lib/services/userService.js';
 import { createPOSBAccount, getAccountDetails } from '../lib/services/accService.js';
+import { checkPaynowLinked } from '../lib/services/userService.js';
 
     export default function Home() {
     const router = useRouter();
@@ -119,18 +120,35 @@ import { createPOSBAccount, getAccountDetails } from '../lib/services/accService
         return null;
     }
 
-    const handlePayNow = () => {
-        // TODO: Add PayNow functionality
-        console.log('PayNow pressed');
-        router.push({
-            // pathname: '/qrScreen',
-            pathname: '/paynowScreen',
-            params: {
-                userAccNumber: accountDetails ? accountDetails.account_number : null,
-                userAccBalance: accountDetails ? accountDetails.current_balance : null,
-                customerid: customerId
+    const handlePayNow = async () => {
+        try {
+            const isLinked = await checkPaynowLinked(customerId);
+
+            if (isLinked) {
+            // Already linked -> go to manage/use page
+            router.push({
+                pathname: "/paynow/paynowQuery",   // or your final PayNow screen
+                params: {
+                    userAccNumber: accountDetails?.account_number ?? null,
+                    userAccBalance: accountDetails?.current_balance ?? null,
+                    customerid: customerId,
+                },
+            });
+            } else {
+            // Not linked yet -> go to link flow
+            router.push({
+                pathname: "/paynow/paynowScreen",
+                params: {
+                    userAccNumber: accountDetails?.account_number ?? null,
+                    userAccBalance: accountDetails?.current_balance ?? null,
+                    customerid: customerId,
+                    accountid : accountDetails.account_id
+                },
+            });
             }
-        });
+        } catch (err) {
+            console.error("handlePayNow error:", err);
+        }
     };
 
     const handleScanPay = () => {

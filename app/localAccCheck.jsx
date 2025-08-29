@@ -25,7 +25,7 @@ export default function LocalAccCheck() {
 
   const performAccountLookup = async (accountNum) => {
     const numberToLookup = accountNum || accountNumber;
-    
+
     if (!numberToLookup.trim()) {
       Alert.alert('Error', 'Please enter an account number');
       return;
