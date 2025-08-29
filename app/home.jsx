@@ -122,6 +122,10 @@ import { createPOSBAccount, getAccountDetails } from '../lib/services/accService
     const handlePayNow = () => {
         // TODO: Add PayNow functionality
         console.log('PayNow pressed');
+        router.push({
+            pathname: '/qrScreen',
+            params: { userAccNumber: accountDetails ? accountDetails.account_number : null }
+        });
     };
 
     const handleScanPay = () => {
