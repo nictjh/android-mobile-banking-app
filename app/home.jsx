@@ -123,8 +123,13 @@ import { createPOSBAccount, getAccountDetails } from '../lib/services/accService
         // TODO: Add PayNow functionality
         console.log('PayNow pressed');
         router.push({
-            pathname: '/qrScreen',
-            params: { userAccNumber: accountDetails ? accountDetails.account_number : null }
+            // pathname: '/qrScreen',
+            pathname: '/paynowScreen',
+            params: {
+                userAccNumber: accountDetails ? accountDetails.account_number : null,
+                userAccBalance: accountDetails ? accountDetails.current_balance : null,
+                customerid: customerId
+            }
         });
     };
 

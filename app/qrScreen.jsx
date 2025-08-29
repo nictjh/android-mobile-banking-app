@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -6,8 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  Platform,
-  KeyboardAvoidingView,
   SafeAreaView
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
