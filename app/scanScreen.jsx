@@ -43,6 +43,15 @@ export default function ScanScreen() {
         }
     }, [hasPermission]);
 
+    const handleShowMyQR = () => {
+        router.push({
+        pathname: "/qrScreen",
+        params: {
+            userAccNumber: userAccountNumber,
+        },
+        });
+    };
+
     if (!device) {
         return (
             <View>
@@ -71,6 +80,17 @@ export default function ScanScreen() {
                 codeScanner={codeScanner}
             />
             <ScanOverlay />
+
+            {/* Floating action row */}
+            <View style={styles.fabRow}>
+                <TouchableOpacity
+                style={[styles.fab, !userAccountNumber && styles.fabDisabled]}
+                onPress={handleShowMyQR}
+                disabled={!userAccountNumber}
+                >
+                <Text style={styles.fabText}>Show my QR</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     );
 
@@ -90,4 +110,28 @@ const styles = StyleSheet.create({
         backgroundColor: '#007Aff',
         marginTop: 10,
     },
+    fabRow: {
+        position: "absolute",
+        bottom: 100,
+        left: 0,
+        right: 0,
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 16,
+    },
+    fab: {
+        backgroundColor: "#3b82f6",
+        paddingVertical: 14,
+        paddingHorizontal: 20,
+        borderRadius: 999,
+        shadowColor: "#000",
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 3 },
+        elevation: 3,
+        minWidth: 160,
+        alignItems: "center",
+    },
+    fabDisabled: { backgroundColor: "#9ca3af" },
+    fabText: { color: "#fff", fontWeight: "700" },
 });
