@@ -266,7 +266,7 @@ import { checkPaynowLinked } from '../lib/services/userService.js';
                     </>
                 ) : (
                     <>
-                        <Text style={styles.balanceLabel}>Welcome to POSB Banking</Text>
+                        <Text style={styles.balanceLabel}>Welcome to Zentra Banking</Text>
                         <Text style={styles.noAccountMessage}>
                             You don't have an account yet
                         </Text>

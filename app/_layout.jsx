@@ -92,6 +92,22 @@ export default function RootLayout() {
             }}
         />
 
+        <Stack.Screen
+            name="paynow/paynowScreen"
+            options={{
+                headerShown: false,
+                gestureEnabled: false, // Disable swipe back gesture
+            }}
+        />
+
+        <Stack.Screen
+            name="paynow/paynowQuery"
+            options={{
+                headerShown: false,
+                gestureEnabled: false, // Disable swipe back gesture
+            }}
+        />
+
     </Stack>
   );
 }
