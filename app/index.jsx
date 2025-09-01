@@ -1,15 +1,35 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator } from 'react-native'
 import { useRouter } from 'expo-router'
 import { supabase } from '../lib/supabase' // You'll need to set this up
 
 import { NativeModules } from 'react-native';
+import NotificationService from '../lib/services/NotificationService';
 
 export default function Login() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    // Check if user is already logged in
+    checkAuthState()
+  }, [])
+
+  const checkAuthState = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        // User is already logged in, initialize Firebase messaging
+        console.log('👤 User already logged in, initializing Firebase...')
+        await NotificationService.init()
+        router.replace('/home')
+      }
+    } catch (error) {
+      console.error('❌ Auth check error:', error)
+    }
+  }
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -29,6 +49,7 @@ export default function Login() {
         Alert.alert('Login Error', error.message)
       } else {
         // Login successful, navigate to home or protected route
+        await NotificationService.init() // Initialize Firebase messaging after login
         router.replace('/home')
       }
     } catch (error) {
