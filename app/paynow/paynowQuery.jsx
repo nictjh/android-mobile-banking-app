@@ -3,24 +3,17 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
 // Import the paynow checking
 import { transferFunds } from '../../lib/services/transferService';
+import { getAccountByPhone } from '../../lib/services/paynowService';
 
     export default function PaynowQuery() {
     const router = useRouter();
-    const { userAccountNumber, userAccountBalance, recipientPhone } = useLocalSearchParams();
+    const { userAccNumber, userAccBalance, recipientPhone } = useLocalSearchParams();
 
     const [phoneNumber, setPhoneNumber] = useState('');
     const [loading, setLoading] = useState(false);
     const [accountFound, setAccountFound] = useState(false);
     const [accountDetails, setAccountDetails] = useState(null);
     const [transferAmount, setTransferAmount] = useState('');
-
-    // Auto-lookup if QR or param provides a phone
-    useEffect(() => {
-        if (recipientPhone && recipientPhone.trim()) {
-            setPhoneNumber(recipientPhone);
-            performPhoneLookup(recipientPhone);
-        }
-    }, [recipientPhone]);
 
     const performPhoneLookup = async (num) => {
         const numberToLookup = num || phoneNumber;
@@ -64,14 +57,14 @@ import { transferFunds } from '../../lib/services/transferService';
         return;
         }
 
-        if (userAccountBalance && parseFloat(userAccountBalance) < amount) {
-            Alert.alert('Insufficient Balance', `You only have $${parseFloat(userAccountBalance).toFixed(2)} available.`);
+        if (userAccBalance && parseFloat(userAccBalance) < amount) {
+            Alert.alert('Insufficient Balance', `You only have $${parseFloat(userAccBalance).toFixed(2)} available.`);
         return;
         }
 
         Alert.alert(
         'Confirm Transfer',
-        `Transfer $${amount.toFixed(2)} from your account (${userAccountNumber}) to ${accountDetails.account_number} (linked to ${phoneNumber})?`,
+        `Transfer $${amount.toFixed(2)} from your account (${userAccNumber}) to ${accountDetails.account_number} (linked to ${phoneNumber})?`,
         [
             { text: 'Cancel', style: 'cancel' },
             {
@@ -79,7 +72,7 @@ import { transferFunds } from '../../lib/services/transferService';
             onPress: async () => {
                 try {
                 setLoading(true);
-                const result = await transferFunds(userAccountNumber, accountDetails.account_number, amount);
+                const result = await transferFunds(userAccNumber, accountDetails.account_number, amount);
                 if (result.success) {
                     Alert.alert('Success', `Transfer of $${amount.toFixed(2)} completed successfully!`);
                 }
@@ -119,13 +112,13 @@ import { transferFunds } from '../../lib/services/transferService';
                 </View>
 
                 {/* From Account */}
-                {userAccountNumber && (
+                {userAccNumber && (
                 <View style={styles.userAccountSection}>
                     <Text style={styles.sectionTitle}>From Your Account</Text>
                     <View style={styles.userAccountCard}>
-                    <Text style={styles.userAccountNumber}>{userAccountNumber}</Text>
+                    <Text style={styles.userAccountNumber}>{userAccNumber}</Text>
                     <Text style={styles.userAccountBalance}>
-                        Available: ${parseFloat(userAccountBalance || 0).toFixed(2)}
+                        Available: ${parseFloat(userAccBalance || 0).toFixed(2)}
                     </Text>
                     </View>
                 </View>

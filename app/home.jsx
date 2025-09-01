@@ -122,16 +122,17 @@ import { checkPaynowLinked } from '../lib/services/userService.js';
 
     const handlePayNow = async () => {
         try {
-            const isLinked = await checkPaynowLinked(customerId);
+            const { linked: isLinked, value: linkedValue } = await checkPaynowLinked(customerId);
 
             if (isLinked) {
             // Already linked -> go to manage/use page
+            console.log("##################### PayNow already linked, navigating to query screen " + accountDetails?.account_number);
             router.push({
                 pathname: "/paynow/paynowQuery",   // or your final PayNow screen
                 params: {
                     userAccNumber: accountDetails?.account_number ?? null,
                     userAccBalance: accountDetails?.current_balance ?? null,
-                    customerid: customerId,
+                    recipientPhone: linkedValue,
                 },
             });
             } else {

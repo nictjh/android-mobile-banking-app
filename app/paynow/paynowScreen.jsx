@@ -28,7 +28,7 @@ export default function PayNowScreen() {
     const loadLinkStatus = useCallback(async () => {
         try {
             if (!customerid) return;
-            const isLinked = await checkPaynowLinked(customerid);
+            const { linked: isLinked, value: linkedValue } = await checkPaynowLinked(customerid);
             setLinked(isLinked);
             setConsentGiven(isLinked); // skip consent if already linked
         } finally {
