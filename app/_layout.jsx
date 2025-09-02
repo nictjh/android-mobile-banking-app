@@ -1,6 +1,7 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { PermissionsAndroid, Platform, Alert } from 'react-native';
 
 export default function RootLayout() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -8,7 +9,62 @@ export default function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
 
+  const requestNotificationPermission = async () => {
+    try {
+      // Only request permission on Android
+      if (Platform.OS === 'android') {
+        // Check if permission is already granted
+        const checkResult = await PermissionsAndroid.check(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+        );
+        
+        if (checkResult) {
+          console.log('Notification permission already granted');
+          return true;
+        }
+
+        // Request the permission
+        const result = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+          {
+            title: 'Notification Permission',
+            message: 'This app needs notification permission to keep you updated',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          }
+        );
+
+        // Handle the result
+        switch (result) {
+          case PermissionsAndroid.RESULTS.GRANTED:
+            console.log('Notification permission granted');
+            return true;
+          case PermissionsAndroid.RESULTS.DENIED:
+            console.log('Notification permission denied');
+            return false;
+          case PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN:
+            console.log('Notification permission denied permanently');
+            Alert.alert(
+              'Permission Required',
+              'Please enable notifications in app settings to receive updates',
+              [{ text: 'OK' }]
+            );
+            return false;
+          default:
+            return false;
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error requesting notification permission:', error);
+      return false;
+    }
+  };
+
   useEffect(() => {
+    requestNotificationPermission();
     // Check initial auth state
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
