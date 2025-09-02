@@ -1,0 +1,400 @@
+@startuml TransferProcess
+!theme plain
+
+' External Actor
+box "User" #FFF2CC
+  actor User
+end box
+
+' Client-Side (Mobile App Layer)
+box "Client Application (Mobile App)" #DDEBF7
+  participant MobileApp
+  participant LocalAccCheck.jsx
+  participant userService.js
+  participant accService.js
+  participant transferService.js
+end box
+
+
+' Supabase SDK + API
+box "Supabase (Auth + PostgREST API)" #E2F0D9
+  participant GoTrueClient
+  participant SupabaseClient
+  participant helpers.ts
+  participant PostgrestQueryBuilder.ts
+  participant PostgrestFilterBuilder.ts
+  participant PostgrestTransformBuilder.ts
+  participant PostgrestBuilder.ts
+  participant fetch.ts
+  participant index.js
+end box
+
+
+' Client Local Storage
+box "Local App Database / Storage" #FCE4D6
+  participant AsyncStorage.native.ts
+  participant AsyncStorageModule
+  participant SQLiteDatabase
+end box
+
+
+' Database Layer
+box "Database (Supabase Postgres)" #E7E6E6
+  participant database
+end box
+
+
+' participant MobileApp
+' participant GoTrueClient
+' participant SupabaseClient
+
+MobileApp -> GoTrueClient : (Start)
+activate GoTrueClient
+GoTrueClient -> GoTrueClient : supabase.auth.getSession() : to retrieve session details
+activate GoTrueClient
+
+GoTrueClient -> GoTrueClient : _useSession()
+activate GoTrueClient
+GoTrueClient -> GoTrueClient : __loadSession()
+activate GoTrueClient
+
+' participant helpers.ts
+
+GoTrueClient -> helpers.ts : getItemAsync()
+activate helpers.ts
+helpers.ts -> AsyncStorage.native.ts : getItem()
+activate AsyncStorage.native.ts
+AsyncStorage.native.ts -> AsyncStorageModule : multiGet()
+activate AsyncStorageModule
+
+' participant SQLiteDatabase
+AsyncStorageModule -> SQLiteDatabase
+activate SQLiteDatabase
+return session data
+return session data
+return session data
+return session data
+
+GoTrueClient -> GoTrueClient : _isValidSession() :  ** Checks types and properties only
+activate GoTrueClient
+return true
+return session data
+
+return session data
+return session data
+
+return session data
+
+' Current Session details retrieved
+
+' participant userService.js
+' participant accService.js
+' participant transferService.js
+
+MobileApp -> userService.js : (Retrieve Customer ID), getUserProfile()
+activate userService.js
+userService.js -> SupabaseClient : from('customers')
+activate SupabaseClient
+return PostgresClient
+userService.js -> PostgrestQueryBuilder.ts : select('*')
+activate PostgrestQueryBuilder.ts
+return PostgrestFilterBuilder
+userService.js -> PostgrestFilterBuilder.ts : eq('auth_user_id', session.user.id)
+activate PostgrestFilterBuilder.ts
+return PostgrestFilterBuilder
+userService.js -> PostgrestTransformBuilder.ts : single()
+activate PostgrestTransformBuilder.ts
+
+' I need to build on this more down to the last call in supabase
+PostgrestTransformBuilder.ts -> PostgrestBuilder.ts : then()
+activate PostgrestBuilder.ts
+
+PostgrestBuilder.ts -> fetch.ts : fetchWithAuth()
+activate fetch.ts
+fetch.ts -> index.js : fetch()
+activate index.js
+
+index.js -> database : Request send to database
+activate database
+return response
+
+return response
+return response
+return response
+
+return customer data
+
+return customer data
+
+' Current Customer data retrieved
+
+MobileApp -> accService.js : getAccountDetails()
+activate accService.js
+accService.js -> SupabaseClient : from('account_parties')
+activate SupabaseClient
+return PostgresClient
+accService.js -> PostgrestQueryBuilder.ts : select('account_id')
+activate PostgrestQueryBuilder.ts
+return PostgrestFilterBuilder
+accService.js -> PostgrestFilterBuilder.ts : eq('customer_id', customer.id)
+activate PostgrestFilterBuilder.ts
+return PostgrestFilterBuilder
+accService.js -> PostgrestTransformBuilder.ts : maybeSingle()
+activate PostgrestTransformBuilder.ts
+
+' Add in more calls downwards for supabase
+PostgrestTransformBuilder.ts -> PostgrestBuilder.ts : then()
+activate PostgrestBuilder.ts
+PostgrestBuilder.ts -> fetch.ts : fetchWithAuth()
+activate fetch.ts
+fetch.ts -> index.js : fetch()
+activate index.js
+index.js -> database : Request send to database
+activate database
+return response
+return response
+return response
+return response
+return account_id
+
+' return current user account_id,  Note: this shouldnt return for graph sake, even though account_id is returned to mobileApp
+
+' Fetched account id linked to current customer
+
+accService.js -> SupabaseClient : from('accounts')
+activate SupabaseClient
+return PostgresClient
+accService.js -> PostgrestQueryBuilder.ts : select('*')
+activate PostgrestQueryBuilder.ts
+return PostgrestFilterBuilder
+accService.js -> PostgrestFilterBuilder.ts : eq('account_id', account_id)
+activate PostgrestFilterBuilder.ts
+return PostgrestFilterBuilder
+accService.js -> PostgrestTransformBuilder.ts : single()
+activate PostgrestTransformBuilder.ts
+
+' Add in here more calls downwards for supabase
+PostgrestTransformBuilder.ts -> PostgrestBuilder.ts : then()
+activate PostgrestBuilder.ts
+PostgrestBuilder.ts -> fetch.ts : fetchWithAuth()
+activate fetch.ts
+fetch.ts -> index.js : fetch()
+activate index.js
+index.js -> database : Request send to database
+activate database
+return response
+return response
+return response
+return response
+
+return account data
+
+return account data
+
+' Fetched current user account data details
+
+User -> MobileApp : Click Fund transfer
+activate MobileApp
+MobileApp -> LocalAccCheck.jsx : Current user acc data: number and balance
+' the current user acc number and balance is sent over to that page
+activate LocalAccCheck.jsx
+User -> MobileApp : Key in Recipient account number
+MobileApp -> LocalAccCheck.jsx : Recipient account number
+' intended recipient account number is sent over to that page
+User -> MobileApp : Press "Check Account"
+
+MobileApp -> LocalAccCheck.jsx : handleAccountLookup()
+activate LocalAccCheck.jsx
+LocalAccCheck.jsx -> accService.js : getAccountDetailsByNumber()
+activate accService.js
+accService.js -> SupabaseClient : from('accounts')
+activate SupabaseClient
+return PostgresClient
+accService.js -> PostgrestQueryBuilder.ts : select('*')
+activate PostgrestQueryBuilder.ts
+return PostgrestFilterBuilder
+accService.js -> PostgrestFilterBuilder.ts : eq('account_number', recipientAccountNumber)
+activate PostgrestFilterBuilder.ts
+return PostgrestFilterBuilder
+accService.js -> PostgrestTransformBuilder.ts : maybeSingle()
+activate PostgrestTransformBuilder.ts
+
+' Add in here more calls downwards for supabase
+PostgrestTransformBuilder.ts -> PostgrestBuilder.ts : then()
+activate PostgrestBuilder.ts
+PostgrestBuilder.ts -> fetch.ts : fetchWithAuth()
+activate fetch.ts
+fetch.ts -> index.js : fetch()
+activate index.js
+index.js -> database : Request send to database
+activate database
+return response
+return response
+return response
+return response
+
+return recipient account data
+
+return recipient account data
+return recipient "exists"
+
+' Concluded check that valid recipient account exist, UI to key transfer amount will be shown
+
+User -> MobileApp : Key in amount to transfer
+User -> MobileApp : Press "Execute transfer"
+MobileApp -> LocalAccCheck.jsx : executeTransfer()
+activate LocalAccCheck.jsx
+
+LocalAccCheck.jsx -> transferService.js : transferFunds()
+activate transferService.js
+
+' Didnt include checks
+
+transferService.js -> SupabaseClient : from('accounts')
+activate SupabaseClient
+return PostgresClient
+transferService.js -> PostgrestQueryBuilder.ts : update({ current_balance: senderBal - amount })
+activate PostgrestQueryBuilder.ts
+return PostgrestFilterBuilder
+transferService.js -> PostgrestFilterBuilder.ts : eq('account_id', senderAccountId)
+activate PostgrestFilterBuilder.ts
+
+' Need to add in more calls here
+PostgrestFilterBuilder.ts -> PostgrestBuilder.ts : then()
+activate PostgrestBuilder.ts
+PostgrestBuilder.ts -> fetch.ts : fetchWithAuth()
+activate fetch.ts
+fetch.ts -> index.js : fetch()
+activate index.js
+index.js -> database : Request send to database
+activate database
+return response
+return response
+return response
+return response
+
+
+return
+
+' updated sender account balance
+
+transferService.js -> SupabaseClient : from('accounts')
+activate SupabaseClient
+return PostgresClient
+transferService.js -> PostgrestQueryBuilder.ts : update({ current_balance: recipientBal + amount })
+activate PostgrestQueryBuilder.ts
+return PostgrestFilterBuilder
+transferService.js -> PostgrestFilterBuilder.ts : eq('account_id', recipientAccountId)
+activate PostgrestFilterBuilder.ts
+
+' Need to add in more calls here
+PostgrestFilterBuilder.ts -> PostgrestBuilder.ts : then()
+activate PostgrestBuilder.ts
+PostgrestBuilder.ts -> fetch.ts : fetchWithAuth()
+activate fetch.ts
+fetch.ts -> index.js : fetch()
+activate index.js
+index.js -> database : Request send to database
+activate database
+return response
+return response
+return response
+return response
+
+return
+
+' updated recipent account balance
+
+transferService.js -> SupabaseClient : from('transactions')
+activate SupabaseClient
+return PostgresClient
+transferService.js -> PostgrestQueryBuilder.ts : insert({debitTransaction, creditTransaction})
+
+note right of PostgrestQueryBuilder.ts
+Debit Transaction Data:
+{
+  account_id: senderAccountId,
+  booking_datetime: new Date().toISOString(),
+  amount: amount,
+  credit_debit: 'Debit',
+  transaction_type: 'Transfer',
+  description: 'Transfer to [recipient]',
+  transaction_type: 'Online Transfer',
+  status: 'Booked'
+}
+Credit Transaction Data:
+{
+    account_id: recipientAccountId,
+    booking_datetime: new Date().toISOString(),
+    amount: amount,
+    credit_debit: 'Credit',
+    transaction_type: 'Transfer',
+    description: 'Transfer from [sender]',
+    transaction_type: 'Online Transfer',
+    status: 'Booked'
+}
+end note
+activate PostgrestQueryBuilder.ts
+
+' Add more calls downwards for supabase
+PostgrestQueryBuilder.ts -> PostgrestBuilder.ts : then()
+activate PostgrestBuilder.ts
+PostgrestBuilder.ts -> fetch.ts : fetchWithAuth()
+activate fetch.ts
+fetch.ts -> index.js : fetch()
+activate index.js
+index.js -> database : Request send to database
+activate database
+return response
+return response
+return response
+return response
+
+return
+
+' updated transactions table
+
+
+transferService.js -> SupabaseClient : from('balances')
+activate SupabaseClient
+return PostgresClient
+transferService.js -> PostgrestQueryBuilder.ts : insert({balanceSender, balanceRecipient})
+note right of PostgrestQueryBuilder.ts
+Balance Sender Data:
+{
+    account_id: senderAccountId,
+    balance_type: 'InterimAvailable',
+    amount: senderBal - amount,
+    credit_debit: 'Debit',
+    reference_date: new Date().toISOString()
+}
+Balance Recipient Data:
+{
+    account_id: recipientAccountId,
+    balance_type: 'InterimAvailable',
+    amount: recipientBal + amount,
+    credit_debit: 'Credit',
+    reference_date: new Date().toISOString()
+}
+end note
+activate PostgrestQueryBuilder.ts
+' Add more calls downwards for supabase
+PostgrestQueryBuilder.ts -> PostgrestBuilder.ts : then()
+activate PostgrestBuilder.ts
+PostgrestBuilder.ts -> fetch.ts : fetchWithAuth()
+activate fetch.ts
+fetch.ts -> index.js : fetch()
+activate index.js
+index.js -> database : Request send to database
+activate database
+return response
+return response
+return response
+return response
+return
+
+
+return
+return
+return
+return Fund Transfer Success
