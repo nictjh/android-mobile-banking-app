@@ -77,6 +77,14 @@ export default function RootLayout() {
       />
 
       <Stack.Screen
+        name="webview"
+        options={{
+          headerShown: false,
+          gestureEnabled: false,
+        }}
+      />
+
+      <Stack.Screen
         name="localAccCheck"
         options={{
           headerShown: false,

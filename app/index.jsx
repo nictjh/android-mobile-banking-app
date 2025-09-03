@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator } from 'react-native'
+import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator, TouchableOpacity } from 'react-native'
 import { useRouter } from 'expo-router'
 import { supabase } from '../lib/supabase' // You'll need to set this up
 
@@ -18,7 +18,7 @@ export default function Login() {
     }
 
     setLoading(true)
-    
+
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -40,6 +40,13 @@ export default function Login() {
   const showToast = () => {
     NativeModules.MyToastModule.showToast('Hello from native!');
   };
+
+  function handleOpenHelp() {
+    router.push({
+            pathname: "/webview",
+            params: { url: "https://google.com", title: "Help Center" },
+            })
+  }
 
   return (
     <View style={styles.container}>
@@ -79,6 +86,14 @@ export default function Login() {
           />
         </>
       )}
+
+      <TouchableOpacity
+        onPress={() => handleOpenHelp()}
+        style={{ padding: 12, backgroundColor: "#3b82f6", borderRadius: 8, marginTop: 20, justifyContent: 'center', alignItems: 'center' }}
+        >
+            <Text style={{ color: "#fff", fontWeight: "600" }}>Open Help</Text>
+      </TouchableOpacity>
+
     </View>
   )
 }
