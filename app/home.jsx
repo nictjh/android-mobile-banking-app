@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase.js';
 import { getUserProfile } from '../lib/services/userService.js';
 import { createPOSBAccount, getAccountDetails } from '../lib/services/accService.js';
+import { checkPaynowLinked } from '../lib/services/userService.js';
 
     export default function Home() {
     const router = useRouter();
@@ -119,14 +120,52 @@ import { createPOSBAccount, getAccountDetails } from '../lib/services/accService
         return null;
     }
 
-    const handlePayNow = () => {
-        // TODO: Add PayNow functionality
-        console.log('PayNow pressed');
+    const handlePayNow = async () => {
+        try {
+            const { linked: isLinked, value: linkedValue } = await checkPaynowLinked(customerId);
+
+            if (isLinked) {
+            // Already linked -> go to manage/use page
+            console.log("##################### PayNow already linked, navigating to query screen " + accountDetails?.account_number);
+            router.push({
+                pathname: "/paynow/paynowQuery",   // or your final PayNow screen
+                params: {
+                    userAccNumber: accountDetails?.account_number ?? null,
+                    userAccBalance: accountDetails?.current_balance ?? null,
+                    recipientPhone: linkedValue,
+                },
+            });
+            } else {
+            // Not linked yet -> go to link flow
+            router.push({
+                pathname: "/paynow/paynowScreen",
+                params: {
+                    userAccNumber: accountDetails?.account_number ?? null,
+                    userAccBalance: accountDetails?.current_balance ?? null,
+                    customerid: customerId,
+                    accountid : accountDetails.account_id
+                },
+            });
+            }
+        } catch (err) {
+            console.error("handlePayNow error:", err);
+        }
     };
 
     const handleScanPay = () => {
-        // TODO: Add Scan & Pay functionality
         console.log('Scan & Pay pressed');
+        if (accountDetails) {
+            router.push({
+                pathname: '/scanScreen',
+                params: {
+                    userAccountNumber: accountDetails.account_number,
+                    userAccountBalance: accountDetails.current_balance,
+                }
+            });
+        } else {
+            router.push('/scanScreen');
+        }
+
     };
 
     const handleFundTransfer = () => {
@@ -227,7 +266,7 @@ import { createPOSBAccount, getAccountDetails } from '../lib/services/accService
                     </>
                 ) : (
                     <>
-                        <Text style={styles.balanceLabel}>Welcome to POSB Banking</Text>
+                        <Text style={styles.balanceLabel}>Welcome to Zentra Banking</Text>
                         <Text style={styles.noAccountMessage}>
                             You don't have an account yet
                         </Text>

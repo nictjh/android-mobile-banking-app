@@ -1,34 +1,46 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar, Alert, ScrollView } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getAccountDetailsByNumber } from '../lib/services/accService.js';
 import { transferFunds } from '../lib/services/transferService.js';
 
 export default function LocalAccCheck() {
   const router = useRouter();
-  const { userAccountNumber, userAccountBalance } = useLocalSearchParams();
+  const { userAccountNumber, userAccountBalance, recipientAccountNumber } = useLocalSearchParams();
   const [accountNumber, setAccountNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [accountFound, setAccountFound] = useState(false);
   const [accountDetails, setAccountDetails] = useState(null);
   const [transferAmount, setTransferAmount] = useState('');
 
-  const handleAccountLookup = async () => {
-    if (!accountNumber.trim()) {
+  // Auto-lookup account if recipientAccountNumber is provided (from QR scan)
+  useEffect(() => {
+    if (recipientAccountNumber && recipientAccountNumber.trim()) {
+      console.log('Auto-looking up account from parameter:', recipientAccountNumber);
+      setAccountNumber(recipientAccountNumber);
+      // Automatically trigger lookup
+      performAccountLookup(recipientAccountNumber);
+    }
+  }, [recipientAccountNumber]);
+
+  const performAccountLookup = async (accountNum) => {
+    const numberToLookup = accountNum || accountNumber;
+
+    if (!numberToLookup.trim()) {
       Alert.alert('Error', 'Please enter an account number');
       return;
     }
 
-    if (accountNumber.length !== 11) {
+    if (numberToLookup.length !== 11) {
       Alert.alert('Error', 'Account number must be 11 digits');
       return;
     }
 
     setLoading(true);
     try {
-      console.log('Looking up account:', accountNumber);
+      console.log('Looking up account:', numberToLookup);
 
-      const details = await getAccountDetailsByNumber(accountNumber);
+      const details = await getAccountDetailsByNumber(numberToLookup);
 
       if (details) {
         setAccountDetails(details);
@@ -48,6 +60,10 @@ export default function LocalAccCheck() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAccountLookup = async () => {
+    await performAccountLookup();
   };
 
   const handleAmountChange = (amount) => {
@@ -114,7 +130,7 @@ export default function LocalAccCheck() {
 
         {/* Header */}
         <View style={styles.backButtonContainer}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity onPress={() => router.push('/home')} style={styles.backButton}>
             <Text style={styles.backButtonText}>← Back</Text>
           </TouchableOpacity>
         </View>

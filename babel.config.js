@@ -10,6 +10,7 @@ module.exports = function (api) {
           path: process.env.ENVFILE || '.env', // 👈 fallback to .env
         },
       ],
+      'react-native-reanimated/plugin', // 👈 Must be last
     ],
   };
 };
