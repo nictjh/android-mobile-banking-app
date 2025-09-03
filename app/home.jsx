@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase.js';
 import { getUserProfile } from '../lib/services/userService.js';
 import { createPOSBAccount, getAccountDetails } from '../lib/services/accService.js';
+import NotificationService from '../lib/services/NotificationService.js';
 
     export default function Home() {
     const router = useRouter();
@@ -97,6 +98,7 @@ import { createPOSBAccount, getAccountDetails } from '../lib/services/accService
     );
 
     const handleLogout = async () => {
+        NotificationService.deleteFCMToken();
         const { error } = await supabase.auth.signOut();
         if (!error) {
             router.replace('/'); // Redirect to login page
