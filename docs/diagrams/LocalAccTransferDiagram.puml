@@ -17,7 +17,7 @@ end box
 
 
 ' Supabase SDK + API
-box "Supabase (Auth + PostgREST API)" #E2F0D9
+box "Supabase (WebServer ['/rest']) " #E2F0D9
   participant GoTrueClient
   participant SupabaseClient
   participant helpers.ts
