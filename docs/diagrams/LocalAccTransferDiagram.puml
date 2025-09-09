@@ -13,11 +13,6 @@ box "Client Application (Mobile App)" #DDEBF7
   participant userService.js
   participant accService.js
   participant transferService.js
-end box
-
-
-' Supabase SDK + API
-box "Supabase (WebServer ['/rest']) " #E2F0D9
   participant GoTrueClient
   participant SupabaseClient
   participant helpers.ts
@@ -27,6 +22,16 @@ box "Supabase (WebServer ['/rest']) " #E2F0D9
   participant PostgrestBuilder.ts
   participant fetch.ts
   participant index.js
+end box
+
+
+' PostgREST Server Layer
+box "PostgREST (Webserver ['/rest']) " #E2F0D9
+  participant App.hs
+  participant ApiRequest.hs
+  participant Plan.hs
+  participant Query.hs
+  participant AppState.hs
 end box
 
 
@@ -114,17 +119,44 @@ activate fetch.ts
 fetch.ts -> index.js : fetch()
 activate index.js
 
-index.js -> database : Request send to database
+' Changing here to include the postgres routing
+index.js -> App.hs : Routed built request to PostgREST by Supabase Kong API Gateway
+activate App.hs
+App.hs -> ApiRequest.hs : ApiRequest.userApiRequest
+activate ApiRequest.hs
+return apiReq
+App.hs -> Plan.hs : Plan.actionPlan
+activate Plan.hs
+return plan
+App.hs -> Query.hs : Query.query
+activate Query.hs
+return dqdbHandler + statements
+App.hs -> AppState.hs : AppState.usePool (grabs a connection to the database)
+activate AppState.hs
+
+AppState.hs -> database : sends the query to database
 activate database
 return response
 
 return response
 return response
 return response
-
+return response
+return response
+return customer data
 return customer data
 
-return customer data
+' index.js -> database : Request send to database
+' activate database
+' return response
+
+' return response
+' return response
+' return response
+
+' return customer data
+
+' return customer data
 
 ' Current Customer data retrieved
 
@@ -149,13 +181,39 @@ PostgrestBuilder.ts -> fetch.ts : fetchWithAuth()
 activate fetch.ts
 fetch.ts -> index.js : fetch()
 activate index.js
-index.js -> database : Request send to database
+
+index.js -> App.hs : Routed built request to PostgREST by Supabase Kong API Gateway
+activate App.hs
+App.hs -> ApiRequest.hs : ApiRequest.userApiRequest
+activate ApiRequest.hs
+return apiReq
+App.hs -> Plan.hs : Plan.actionPlan
+activate Plan.hs
+return plan
+App.hs -> Query.hs : Query.query
+activate Query.hs
+return dqdbHandler + statements
+App.hs -> AppState.hs : AppState.usePool (grabs a connection to the database)
+activate AppState.hs
+
+AppState.hs -> database : sends the query to database
 activate database
+return response
+
+return response
 return response
 return response
 return response
 return response
 return account_id
+
+' index.js -> database : Request send to database
+' activate database
+' return response
+' return response
+' return response
+' return response
+' return account_id
 
 ' return current user account_id,  Note: this shouldnt return for graph sake, even though account_id is returned to mobileApp
 
@@ -180,16 +238,43 @@ PostgrestBuilder.ts -> fetch.ts : fetchWithAuth()
 activate fetch.ts
 fetch.ts -> index.js : fetch()
 activate index.js
-index.js -> database : Request send to database
+
+index.js -> App.hs : Routed built request to PostgREST by Supabase Kong API Gateway
+activate App.hs
+App.hs -> ApiRequest.hs : ApiRequest.userApiRequest
+activate ApiRequest.hs
+return apiReq
+App.hs -> Plan.hs : Plan.actionPlan
+activate Plan.hs
+return plan
+App.hs -> Query.hs : Query.query
+activate Query.hs
+return dqdbHandler + statements
+App.hs -> AppState.hs : AppState.usePool (grabs a connection to the database)
+activate AppState.hs
+
+AppState.hs -> database : sends the query to database
 activate database
 return response
-return response
-return response
-return response
 
+return response
+return response
+return response
+return response
+return response
+return account data
 return account data
 
-return account data
+' index.js -> database : Request send to database
+' activate database
+' return response
+' return response
+' return response
+' return response
+
+' return account data
+
+' return account data
 
 ' Fetched current user account data details
 
@@ -226,16 +311,43 @@ PostgrestBuilder.ts -> fetch.ts : fetchWithAuth()
 activate fetch.ts
 fetch.ts -> index.js : fetch()
 activate index.js
-index.js -> database : Request send to database
+
+index.js -> App.hs : Routed built request to PostgREST by Supabase Kong API Gateway
+activate App.hs
+App.hs -> ApiRequest.hs : ApiRequest.userApiRequest
+activate ApiRequest.hs
+return apiReq
+App.hs -> Plan.hs : Plan.actionPlan
+activate Plan.hs
+return plan
+App.hs -> Query.hs : Query.query
+activate Query.hs
+return dqdbHandler + statements
+App.hs -> AppState.hs : AppState.usePool (grabs a connection to the database)
+activate AppState.hs
+
+AppState.hs -> database : sends the query to database
 activate database
 return response
-return response
-return response
-return response
 
+return response
+return response
+return response
+return response
+return response
+return recipient account data
 return recipient account data
 
-return recipient account data
+' index.js -> database : Request send to database
+' activate database
+' return response
+' return response
+' return response
+' return response
+
+' return recipient account data
+
+' return recipient account data
 return recipient "exists"
 
 ' Concluded check that valid recipient account exist, UI to key transfer amount will be shown
@@ -266,12 +378,38 @@ PostgrestBuilder.ts -> fetch.ts : fetchWithAuth()
 activate fetch.ts
 fetch.ts -> index.js : fetch()
 activate index.js
-index.js -> database : Request send to database
+
+index.js -> App.hs : Routed built request to PostgREST by Supabase Kong API Gateway
+activate App.hs
+App.hs -> ApiRequest.hs : ApiRequest.userApiRequest
+activate ApiRequest.hs
+return apiReq
+App.hs -> Plan.hs : Plan.actionPlan
+activate Plan.hs
+return plan
+App.hs -> Query.hs : Query.query
+activate Query.hs
+return dqdbHandler + statements
+App.hs -> AppState.hs : AppState.usePool (grabs a connection to the database)
+activate AppState.hs
+
+AppState.hs -> database : sends the query to database
 activate database
 return response
+
 return response
 return response
 return response
+return response
+return response
+
+
+' index.js -> database : Request send to database
+' activate database
+' return response
+' return response
+' return response
+' return response
 
 
 return
@@ -294,12 +432,37 @@ PostgrestBuilder.ts -> fetch.ts : fetchWithAuth()
 activate fetch.ts
 fetch.ts -> index.js : fetch()
 activate index.js
-index.js -> database : Request send to database
+
+index.js -> App.hs : Routed built request to PostgREST by Supabase Kong API Gateway
+activate App.hs
+App.hs -> ApiRequest.hs : ApiRequest.userApiRequest
+activate ApiRequest.hs
+return apiReq
+App.hs -> Plan.hs : Plan.actionPlan
+activate Plan.hs
+return plan
+App.hs -> Query.hs : Query.query
+activate Query.hs
+return dqdbHandler + statements
+App.hs -> AppState.hs : AppState.usePool (grabs a connection to the database)
+activate AppState.hs
+
+AppState.hs -> database : sends the query to database
 activate database
 return response
+
 return response
 return response
 return response
+return response
+return response
+
+' index.js -> database : Request send to database
+' activate database
+' return response
+' return response
+' return response
+' return response
 
 return
 
@@ -343,12 +506,37 @@ PostgrestBuilder.ts -> fetch.ts : fetchWithAuth()
 activate fetch.ts
 fetch.ts -> index.js : fetch()
 activate index.js
-index.js -> database : Request send to database
+
+index.js -> App.hs : Routed built request to PostgREST by Supabase Kong API Gateway
+activate App.hs
+App.hs -> ApiRequest.hs : ApiRequest.userApiRequest
+activate ApiRequest.hs
+return apiReq
+App.hs -> Plan.hs : Plan.actionPlan
+activate Plan.hs
+return plan
+App.hs -> Query.hs : Query.query
+activate Query.hs
+return dqdbHandler + statements
+App.hs -> AppState.hs : AppState.usePool (grabs a connection to the database)
+activate AppState.hs
+
+AppState.hs -> database : sends the query to database
 activate database
 return response
+
 return response
 return response
 return response
+return response
+return response
+
+' index.js -> database : Request send to database
+' activate database
+' return response
+' return response
+' return response
+' return response
 
 return
 
@@ -385,12 +573,37 @@ PostgrestBuilder.ts -> fetch.ts : fetchWithAuth()
 activate fetch.ts
 fetch.ts -> index.js : fetch()
 activate index.js
-index.js -> database : Request send to database
+
+index.js -> App.hs : Routed built request to PostgREST by Supabase Kong API Gateway
+activate App.hs
+App.hs -> ApiRequest.hs : ApiRequest.userApiRequest
+activate ApiRequest.hs
+return apiReq
+App.hs -> Plan.hs : Plan.actionPlan
+activate Plan.hs
+return plan
+App.hs -> Query.hs : Query.query
+activate Query.hs
+return dqdbHandler + statements
+App.hs -> AppState.hs : AppState.usePool (grabs a connection to the database)
+activate AppState.hs
+
+AppState.hs -> database : sends the query to database
 activate database
 return response
+
 return response
 return response
 return response
+return response
+return response
+
+' index.js -> database : Request send to database
+' activate database
+' return response
+' return response
+' return response
+' return response
 return
 
 
