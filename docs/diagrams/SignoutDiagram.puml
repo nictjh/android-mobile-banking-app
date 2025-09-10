@@ -64,7 +64,10 @@ activate ClientSignOut
                 activate RequireAuth
                   RequireAuth -> ExtractToken : extractBearerToken(r)
                   activate ExtractToken
-                    ExtractToken -> ParseJWT : parseJWTClaims(token,r)
+                  ExtractToken --> RequireAuth
+                  deactivate ExtractToken
+
+                    RequireAuth -> ParseJWT : parseJWTClaims(token,r)
                     activate ParseJWT
                       ParseJWT -> ParseWithClaims : ParseWithClaims()
                       activate ParseWithClaims
@@ -74,17 +77,19 @@ activate ClientSignOut
                           activate SplitToken
                           SplitToken --> ParseUnverified : parts[0..2]
                           deactivate SplitToken
-                        ParseUnverified --> ParseWithClaims : token struct
+                        ParseUnverified --> ParseWithClaims
                         deactivate ParseUnverified
                       ParseWithClaims --> ParseJWT
                       deactivate ParseWithClaims
-                      ParseJWT -> MaybeLoadUser : maybeLoadUserOrSession(ctx)
-                      activate MaybeLoadUser
-                      MaybeLoadUser --> ParseJWT
-                      deactivate MaybeLoadUser
+                      
+                    ParseJWT -> RequireAuth
                     deactivate ParseJWT
-                  ExtractToken --> RequireAuth
-                  deactivate ExtractToken
+
+                    RequireAuth -> MaybeLoadUser : maybeLoadUserOrSession(ctx)
+                    activate MaybeLoadUser
+                    MaybeLoadUser --> RequireAuth
+                    deactivate MaybeLoadUser
+                  
                 RequireAuth -> LogoutHandler : Logout(w,r)
                 activate LogoutHandler
                   LogoutHandler -> GetSession : getSession(ctx)
@@ -100,7 +105,6 @@ activate ClientSignOut
                   LogoutHandler -> LogoutSession : Logout(storageConn, sessionId)
                   activate LogoutSession
 
-                    == Database ==
                     LogoutSession -> Exec : Exec("DELETE ... WHERE id=?")
                     activate Exec
                       Exec -> TxExec : tx.Exec()
@@ -151,4 +155,7 @@ activate ClientSignOut
       deactivate Request
     AdminSignOut --> Client_SignOut
     deactivate AdminSignOut
-  Client_SignOut -->
+  Client_SignOut --> ClientSignOut
+  deactivate ClientSignOut
+ClientSignOut --> Client
+deactivate Client

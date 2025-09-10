@@ -32,5 +32,6 @@
         <data android:scheme="exp+testreactnative"/>
       </intent-filter>
     </activity>
+    
   </application>
 </manifest>

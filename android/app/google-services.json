@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "520383732856",
+    "project_id": "android-mobile-banking-app",
+    "storage_bucket": "android-mobile-banking-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:520383732856:android:1efd8ad91af9f64699218d",
+        "android_client_info": {
+          "package_name": "com.ahmadsyuaib.androidmobilebankingapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDyXWISbyEWyKt9jHmk0vk_Wde2uIbg4i0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
