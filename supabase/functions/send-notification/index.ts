@@ -115,6 +115,7 @@ async function getAccessToken() {
 }
 
 serve(async (req) => {
+  console.log("Request = ", req)
   console.log('🚀 send-notification function called (FCM API V1)')
 
   if (req.method === 'OPTIONS') {
