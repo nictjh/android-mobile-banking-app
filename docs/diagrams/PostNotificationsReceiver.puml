@@ -1,0 +1,149 @@
+
+@startuml NotificationFlows
+
+' ===== Sender =====
+title User A - Android 33+ Permission + FCM Registration + Token Persist
+
+actor Client
+
+box "Client App" #LightBlue
+  participant "_layout.jsx\n(userEffect, requestNotificationPermission)" as Layout
+  participant "PermissionsAndroid.js\n(check, request)" as RNPerms
+  participant "NativePermissionsAndroid.js\n(checkPermission, requestPermission)" as NativePerms
+  participant "index.jsx\n(handleLogin)" as Index
+  participant "NotificationService.js\n(init, requestPermission, getFCMToken,\nsetupForegroundHandler, setupBackgroundHandler,\nstoreFCMToken)" as NotifSvc
+  participant "@react-native-firebase/messaging\n(index.js: onMessage/setBackgroundMessageHandler,\ngetToken/registerDeviceForRemoteMessages)" as RNFB
+  participant "EventEmitter.js\n(addListener)" as EventEmitter
+end box
+
+box "PostgREST Server" #LightGreen
+  participant "Main.hs\n(main)" as PGRMain
+  participant "CLI.hs\n(CLI.main)" as PGRCli
+  participant "App.hs\n(App.run, postgrest, postgrestResponse)" as PGRApp
+  participant "ApiRequest.hs\n(userApiRequest)" as PGRApiReq
+  participant "Plan.hs\n(actionPlan)" as PGRPlan
+  participant "Query.hs\n(query)" as PGRQuery
+  participant "AppState.hs\n(usePool)" as PGRState
+end box
+
+box "Database Server" #LightYellow
+  database "users\n(table)" as TUsers
+  database "customers\n(table)" as TCustomers
+  database "account_parties\n(table)" as TAcctParties
+  database "user_devices\n(table)" as TUserDevices
+  participant "SQL.use()\n(connection pool)" as SQLUse
+end box
+
+== App Launch ==
+Client -> Layout : useEffect()
+activate Layout
+Layout -> RNPerms : check(POST_NOTIFICATIONS)
+activate RNPerms
+RNPerms -> NativePerms : checkPermission(POST_NOTIFICATIONS)
+activate NativePerms
+NativePerms --> RNPerms
+deactivate NativePerms
+RNPerms --> Layout
+deactivate RNPerms
+
+Layout -> RNPerms : request(POST_NOTIFICATIONS)
+activate RNPerms
+RNPerms -> NativePerms : requestPermission(POST_NOTIFICATIONS)
+activate NativePerms
+NativePerms --> RNPerms
+deactivate NativePerms
+RNPerms --> Layout
+deactivate RNPerms
+Layout --> Client
+deactivate Layout
+
+== User Signs In ==
+Client -> Index : handleLogin()
+activate Index
+Index -> NotifSvc : init()
+activate NotifSvc
+
+== Retrieve FCM Token ==
+NotifSvc -> NotifSvc : getFCMToken()
+activate NotifSvc
+NotifSvc -> RNFB : getToken()
+activate RNFB
+RNFB --> NotifSvc : fcmToken
+deactivate RNFB
+
+NotifSvc -> TUsers : GET /user
+activate TUsers
+TUsers --> NotifSvc : user JSON
+deactivate TUsers
+
+
+' SELECT customer by auth_user_id
+NotifSvc -> TCustomers : GET /customers...
+activate TCustomers
+TCustomers --> NotifSvc : customer_id
+deactivate TCustomers
+
+' SELECT account by customer_id
+NotifSvc -> TAcctParties : GET /account_parties...
+activate TAcctParties
+TAcctParties --> NotifSvc : account_id
+deactivate TAcctParties
+
+' UPSERT user_devices with is_active=true
+NotifSvc -> PGRMain : POST /user_devices
+activate PGRMain
+PGRMain -> PGRCli : CLI.main()
+activate PGRCli
+PGRCli -> PGRApp : App.run() → postgrest()
+activate PGRApp
+PGRApp -> PGRApiReq : userApiRequest
+activate PGRApiReq
+PGRApiReq -> PGRPlan : actionPlan()
+activate PGRPlan
+PGRPlan -> PGRQuery : query()
+activate PGRQuery
+PGRQuery -> PGRState : AppState.usePool()
+activate PGRState
+PGRState -> SQLUse : SQL.use()
+activate SQLUse
+SQLUse --> PGRState
+deactivate SQLUse
+PGRState --> PGRQuery
+deactivate PGRState
+PGRQuery --> PGRPlan
+deactivate PGRQuery
+PGRPlan --> PGRApiReq
+deactivate PGRPlan
+PGRApiReq --> PGRApp
+deactivate PGRApiReq
+PGRApp --> PGRCli
+deactivate PGRApp
+PGRCli --> PGRMain
+deactivate PGRCli
+PGRMain --> NotifSvc : user JSON
+deactivate PGRMain
+
+== Setup FCM Handlers ==
+
+NotifSvc -> RNFB : setupForegroundHandler()\n(onMessage)
+activate RNFB
+RNFB -> EventEmitter : addListener()
+activate EventEmitter
+EventEmitter --> RNFB
+deactivate EventEmitter
+RNFB --> NotifSvc
+deactivate RNFB
+
+NotifSvc -> RNFB : setupBackgroundHandler()\n(setBackgroundMessageHandler)
+activate RNFB
+RNFB --> NotifSvc
+deactivate RNFB
+NotifSvc -> NotifSvc 
+deactivate NotifSvc
+NotifSvc -> Index
+deactivate NotifSvc
+Index --> Client
+deactivate Index
+
+@enduml
+
