@@ -6,11 +6,15 @@ import { supabase } from '../lib/supabase' // You'll need to set this up
 import { NativeModules } from 'react-native';
 import NotificationService from '../lib/services/NotificationService';
 
+import { useDevice } from '../context/DeviceContext';
+
 export default function Login() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const { deviceId } = useDevice();
+  console.log("📱 Device ID in Login component:", deviceId);
 
   useEffect(() => {
     // Check if user is already logged in
@@ -38,26 +42,64 @@ export default function Login() {
     }
 
     setLoading(true)
-    
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
 
-      if (error) {
-        Alert.alert('Login Error', error.message)
-      } else {
-        // Login successful, navigate to home or protected route
-        await NotificationService.init() // Initialize Firebase messaging after login
-        router.replace('/home')
-      }
+    try {
+
+        const { user, session, error } = await signIn(email, password, deviceId)
+        // const {data, error} = await supabase.auth.signInWithPassword({
+        //     email,
+        //     password
+        // })
+        if (error) {
+            Alert.alert('Login Error', error.message)
+        } else {
+            await NotificationService.init() // Initialize Firebase messaging after login
+            router.replace('/home')
+        }
+
     } catch (error) {
       Alert.alert('Unexpected Error', 'An unexpected error occurred')
     } finally {
       setLoading(false)
     }
   }
+
+    // Re write the signIn function with device binding
+    async function signIn(email, password, deviceId) {
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password
+        });
+
+        if (error) {
+            return { error };
+        }
+
+        // Defensive checks
+        if (!deviceId) {
+            return { error: { message: 'Device ID not available' } };
+        }
+        if (!data?.user || !data?.session) {
+            return { error: { message: 'User/session not found' } };
+        }
+
+        // Bind device
+        const { data: deviceData, error: deviceError } = await supabase.from('auth_devices').insert({
+            user_id: data.user.id,
+            device_id: deviceId,
+            refresh_token: data.session.refresh_token
+        });
+
+        if (deviceError) {
+            return { error: deviceError };
+        }
+
+        return { data: deviceData, user: data.user, session: data.session };
+    }
+
+
+
   const showToast = () => {
     NativeModules.MyToastModule.showToast('Hello from native!');
   };

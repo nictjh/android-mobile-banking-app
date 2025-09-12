@@ -2,8 +2,22 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { PermissionsAndroid, Platform, Alert } from 'react-native';
+import { DeviceProvider, useDevice } from '../context/DeviceContext';
 
-export default function RootLayout() {
+function DeviceLogger() {
+  const { deviceId } = useDevice();
+  
+  useEffect(() => {
+    if (deviceId) {
+      console.log("📱 Current Device ID (from context):", deviceId);
+    }
+  }, [deviceId]);
+  
+  return null;
+}
+
+function RootNavigation() {
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -17,7 +31,7 @@ export default function RootLayout() {
         const checkResult = await PermissionsAndroid.check(
           PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
         );
-        
+
         if (checkResult) {
           console.log('Notification permission already granted');
           return true;
@@ -55,7 +69,7 @@ export default function RootLayout() {
             return false;
         }
       }
-      
+
       return true;
     } catch (error) {
       console.error('Error requesting notification permission:', error);
@@ -101,44 +115,46 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack>
-      <Stack.Screen
-        name="index"
-        options={{
-          headerShown: false,
-        }}
-      />
+    <>
+      <DeviceLogger />
+      <Stack>
+        <Stack.Screen
+            name="index"
+            options={{
+            headerShown: false,
+            }}
+        />
 
-      <Stack.Screen
-        name="signup"
-        options={{
-          headerShown: false,
-          presentation: 'modal',
-        }}
-      />
+        <Stack.Screen
+            name="signup"
+            options={{
+            headerShown: false,
+            presentation: 'modal',
+            }}
+        />
 
-      <Stack.Screen
-        name="home"
-        options={{
-          headerShown: false,
-          gestureEnabled: false,
-        }}
-      />
+        <Stack.Screen
+            name="home"
+            options={{
+            headerShown: false,
+            gestureEnabled: false,
+            }}
+        />
 
-      <Stack.Screen
-        name="userinfo"
-        options={{
-          headerShown: false,
-        }}
-      />
+        <Stack.Screen
+            name="userinfo"
+            options={{
+            headerShown: false,
+            }}
+        />
 
-      <Stack.Screen
-        name="localAccCheck"
-        options={{
-          headerShown: false,
-          gestureEnabled: false, // Disable swipe back gesture
-        }}
-      />
+        <Stack.Screen
+            name="localAccCheck"
+            options={{
+            headerShown: false,
+            gestureEnabled: false, // Disable swipe back gesture
+            }}
+        />
 
         <Stack.Screen
             name="scanScreen"
@@ -165,5 +181,15 @@ export default function RootLayout() {
         />
 
     </Stack>
+    </>
   );
+}
+
+
+export default function RootLayout() {
+    return (
+        <DeviceProvider>
+            <RootNavigation />
+        </DeviceProvider>
+    );
 }

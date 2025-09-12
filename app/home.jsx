@@ -6,6 +6,7 @@ import { getUserProfile } from '../lib/services/userService.js';
 import { createPOSBAccount, getAccountDetails } from '../lib/services/accService.js';
 import NotificationService from '../lib/services/NotificationService.js';
 import { checkPaynowLinked } from '../lib/services/userService.js';
+import { useDevice } from '../context/DeviceContext.jsx';
 
     export default function Home() {
     const router = useRouter();
@@ -15,6 +16,8 @@ import { checkPaynowLinked } from '../lib/services/userService.js';
     const [customerId, setCustomerId] = useState(null);
     const [accountDetails, setAccountDetails] = useState(null);
     const [error, setError] = useState(null);
+    const { deviceId } = useDevice();
+    console.log("🏠 Home Screen - Device ID from context:", deviceId);
 
     useEffect(() => { // This will run on component mount
         const fetchUserAndCustomerData = async () => {
@@ -99,12 +102,57 @@ import { checkPaynowLinked } from '../lib/services/userService.js';
     );
 
     const handleLogout = async () => {
-        NotificationService.deleteFCMToken();
-        const { error } = await supabase.auth.signOut();
-        if (!error) {
+        console.log('🚪 handleLogout called');
+        try {
+            console.log('🗑️ Deleting FCM token...');
+            NotificationService.deleteFCMToken();
+
+            console.log('📤 Calling signOut function...');
+            await signOut();
+            // const { error } = await supabase.auth.signOut();
+
+            console.log('🏠 Redirecting to login...');
             router.replace('/'); // Redirect to login page
+        } catch (error) {
+            console.error('❌ Error during logout:', error);
         }
     };
+
+
+
+    //Rewrite the signOut function
+    async function signOut() {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError || !session) {
+            throw new Error('No valid session found');
+        }
+
+        const res = await fetch("https://vomohccmapvpspaupbah.functions.supabase.co/signout", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${session.access_token}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ device_id: deviceId }),
+        });
+
+        // Log the raw response to debug
+        const responseText = await res.text();
+        console.log('Raw response:', responseText);
+        console.log('Response status:', res.status);
+
+        if (!res.ok) {
+            throw new Error(`HTTP ${res.status}: ${responseText}`);
+        }
+
+        try {
+            const data = JSON.parse(responseText);
+            console.log("Signed out successfully", data);
+            return data;
+        } catch (parseError) {
+            throw new Error(`Invalid JSON response: ${responseText}`);
+        }
+    }
 
     // Show loading while checking session
     if (loading) {
