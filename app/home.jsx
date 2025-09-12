@@ -6,6 +6,7 @@ import { getUserProfile } from '../lib/services/userService.js';
 import { createPOSBAccount, getAccountDetails } from '../lib/services/accService.js';
 import NotificationService from '../lib/services/NotificationService.js';
 import { checkPaynowLinked } from '../lib/services/userService.js';
+import SecureButton from '../app/component/SecureButton';
 
     export default function Home() {
     const router = useRouter();
@@ -244,9 +245,15 @@ import { checkPaynowLinked } from '../lib/services/userService.js';
             showsVerticalScrollIndicator={true}
         >
             <View style={styles.headerLogOut}>
-                <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+                {/* <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
                     <Text style={styles.logoutText}>Logout</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
+                <SecureButton
+                    text="Logout"
+                    style={styles.logoutButton}
+                    textStyle={styles.logoutText}
+                    onPress={handleLogout}
+                />
             </View>
 
             <View style={styles.header}>
@@ -406,12 +413,18 @@ const styles = StyleSheet.create({
         color: '#6b7280',
     },
     logoutButton: {
-        padding: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: 60,
+        minHeight: 32,
     },
     logoutText: {
         fontSize: 16,
         color: '#ef4444',
-        fontWeight: '500',
+        fontWeight: '600',
+        textAlign: 'center',
     },
     balanceCard: {
         backgroundColor: '#ffffff',

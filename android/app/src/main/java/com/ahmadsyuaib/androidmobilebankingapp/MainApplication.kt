@@ -28,6 +28,7 @@ class MainApplication : Application(), ReactApplication {
             val packages = PackageList(this).packages.toMutableList()
             // ✅ Register your custom toast module here
             packages.add(MyToastPackage())
+            packages.add(SecureButtonPackage()) // Register SecureButtonPackage
             return packages
           }
 
