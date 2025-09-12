@@ -58,13 +58,13 @@ export default function Login() {
       setLoading(false)
     }
   }
-  const showToast = () => {
-    NativeModules.MyToastModule.showToast('Hello from native!');
-  };
+  // const showToast = () => {
+  //   NativeModules.MyToastModule.showToast('Hello from native!');
+  // };
 
   return (
     <View style={styles.container}>
-      <Button title="Show Native Toast" onPress={showToast} />
+      {/* <Button title="Show Native Toast" onPress={showToast} /> */}
       <Text style={styles.title}>Login</Text>
 
       <TextInput
