@@ -235,6 +235,13 @@ import { checkPaynowLinked } from '../lib/services/userService.js';
         console.log('Close Bank Profile pressed');
     };
 
+    function handleOpenWebview() {
+        router.push({
+                pathname: "/webview",
+                params: { url: "https://www.csa.gov.sg/", title: "CSA's Website" },
+                })
+    }
+
     return (
         <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor="#f8f9fa" />
@@ -358,6 +365,20 @@ import { checkPaynowLinked } from '../lib/services/userService.js';
                 </TouchableOpacity>
                 </View>
             </View>
+
+            {/* Webview Card */}
+            <View style={styles.actionsCard}>
+                <Text style={styles.actionsTitle}>Webview</Text>
+                <View style={styles.actionsContainer}>
+                <TouchableOpacity style={styles.actionButton} onPress={handleOpenWebview}>
+                    <View style={styles.actionIconPlaceholder}>
+                    <Text style={styles.actionIconText}>🌐</Text>
+                    </View>
+                    <Text style={styles.actionText}>Open Webview</Text>
+                </TouchableOpacity>
+                </View>
+            </View>
+            
         </ScrollView>
         </SafeAreaView>
     );

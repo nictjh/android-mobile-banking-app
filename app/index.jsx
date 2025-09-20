@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react'
 import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator } from 'react-native'
 import { useRouter } from 'expo-router'
-import { supabase } from '../lib/supabase' // You'll need to set this up
+import { supabase } from '../lib/supabase' 
 
 import { NativeModules } from 'react-native';
 import NotificationService from '../lib/services/NotificationService';
+
+// import analytics from '@react-native-firebase/analytics';
+
+// export async function logLogin() {
+//   await analytics().setAnalyticsCollectionEnabled(true);
+//   await analytics().logEvent('login_attempt', { method: 'email' });
+// }
 
 export default function Login() {
   const router = useRouter()
@@ -48,6 +55,8 @@ export default function Login() {
       if (error) {
         Alert.alert('Login Error', error.message)
       } else {
+        // await logLogin() // Log the login event
+        // console.log('✅🦄 Login successful, initializing Firebase...')
         // Login successful, navigate to home or protected route
         await NotificationService.init() // Initialize Firebase messaging after login
         router.replace('/home')
