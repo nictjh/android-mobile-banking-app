@@ -237,9 +237,9 @@ import { checkPaynowLinked } from '../lib/services/userService.js';
 
     function handleOpenWebview() {
         router.push({
-                pathname: "/webview",
-                params: { url: "https://www.csa.gov.sg/", title: "CSA's Website" },
-                })
+            pathname: "/webview",
+            params: { url: "https://www.csa.gov.sg/", title: "CSA's Website" },
+        })
     }
 
     return (
