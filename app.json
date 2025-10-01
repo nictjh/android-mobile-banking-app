@@ -5,7 +5,7 @@
     "slug": "testReactNative",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/ZentraBankLogo.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {

@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react'
 import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator } from 'react-native'
 import { useRouter } from 'expo-router'
-import { supabase } from '../lib/supabase' // You'll need to set this up
+import { supabase } from '../lib/supabase' 
 
 import { NativeModules } from 'react-native';
 import NotificationService from '../lib/services/NotificationService';
+
+// import analytics from '@react-native-firebase/analytics';
+
+// export async function logLogin() {
+//   await analytics().setAnalyticsCollectionEnabled(true);
+//   await analytics().logEvent('login_attempt', { method: 'email' });
+// }
 
 export default function Login() {
   const router = useRouter()
@@ -20,6 +27,7 @@ export default function Login() {
   const checkAuthState = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession()
+      console.log('🔍🔍🔍🔍🔍🔍🔍 Checking auth state, session:', session)
       if (session) {
         // User is already logged in, initialize Firebase messaging
         console.log('👤 User already logged in, initializing Firebase...')
@@ -48,6 +56,8 @@ export default function Login() {
       if (error) {
         Alert.alert('Login Error', error.message)
       } else {
+        // await logLogin() // Log the login event
+        // console.log('✅🦄 Login successful, initializing Firebase...')
         // Login successful, navigate to home or protected route
         await NotificationService.init() // Initialize Firebase messaging after login
         router.replace('/home')
@@ -58,13 +68,13 @@ export default function Login() {
       setLoading(false)
     }
   }
-  const showToast = () => {
-    NativeModules.MyToastModule.showToast('Hello from native!');
-  };
+  // const showToast = () => {
+  //   NativeModules.MyToastModule.showToast('Hello from native!');
+  // };
 
   return (
     <View style={styles.container}>
-      <Button title="Show Native Toast" onPress={showToast} />
+      {/* <Button title="Show Native Toast" onPress={showToast} /> */}
       <Text style={styles.title}>Login</Text>
 
       <TextInput
