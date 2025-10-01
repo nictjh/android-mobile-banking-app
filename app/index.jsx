@@ -27,6 +27,7 @@ export default function Login() {
   const checkAuthState = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession()
+      console.log('🔍🔍🔍🔍🔍🔍🔍 Checking auth state, session:', session)
       if (session) {
         // User is already logged in, initialize Firebase messaging
         console.log('👤 User already logged in, initializing Firebase...')
