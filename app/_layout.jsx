@@ -164,6 +164,14 @@ export default function RootLayout() {
             }}
         />
 
+        <Stack.Screen
+          name="webview"
+          options={{
+            headerShown: false,
+            gestureEnabled: false,
+          }}
+        />
+
     </Stack>
   );
 }
