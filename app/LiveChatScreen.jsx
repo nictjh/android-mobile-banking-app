@@ -20,7 +20,7 @@ export default function LiveChatScreen() {
 
   // Cache one time, and only update if wsUrlParam changes
   const wsUrl = useMemo(
-    // () => (wsUrlParam ? String(wsUrlParam) : 'wss://talented-chambers-ensures-ignored.trycloudflare.com/ws'),
+    // () => (wsUrlParam ? String(wsUrlParam) : 'wss://import-zum-york-quarter.trycloudflare.com/ws'),
     () => (wsUrlParam ? String(wsUrlParam) : 'ws://10.0.2.2:8000/ws'), // This is for emulator, normally is localhost
     [wsUrlParam]
   );
