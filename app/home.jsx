@@ -7,7 +7,7 @@ import { createPOSBAccount, getAccountDetails } from '../lib/services/accService
 import NotificationService from '../lib/services/NotificationService.js';
 import { checkPaynowLinked } from '../lib/services/userService.js';
 
-    export default function Home() {
+export default function Home() {
     const router = useRouter();
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -111,7 +111,7 @@ import { checkPaynowLinked } from '../lib/services/userService.js';
         return (
             <SafeAreaView style={styles.container}>
                 <View style={styles.loadingContainer}>
-                <Text style={styles.loadingText}>Loading...</Text>
+                    <Text style={styles.loadingText}>Loading...</Text>
                 </View>
             </SafeAreaView>
         );
@@ -127,27 +127,27 @@ import { checkPaynowLinked } from '../lib/services/userService.js';
             const { linked: isLinked, value: linkedValue } = await checkPaynowLinked(customerId);
 
             if (isLinked) {
-            // Already linked -> go to manage/use page
-            console.log("##################### PayNow already linked, navigating to query screen " + accountDetails?.account_number);
-            router.push({
-                pathname: "/paynow/paynowQuery",   // or your final PayNow screen
-                params: {
-                    userAccNumber: accountDetails?.account_number ?? null,
-                    userAccBalance: accountDetails?.current_balance ?? null,
-                    recipientPhone: linkedValue,
-                },
-            });
+                // Already linked -> go to manage/use page
+                console.log("##################### PayNow already linked, navigating to query screen " + accountDetails?.account_number);
+                router.push({
+                    pathname: "/paynow/paynowQuery",   // or your final PayNow screen
+                    params: {
+                        userAccNumber: accountDetails?.account_number ?? null,
+                        userAccBalance: accountDetails?.current_balance ?? null,
+                        recipientPhone: linkedValue,
+                    },
+                });
             } else {
-            // Not linked yet -> go to link flow
-            router.push({
-                pathname: "/paynow/paynowScreen",
-                params: {
-                    userAccNumber: accountDetails?.account_number ?? null,
-                    userAccBalance: accountDetails?.current_balance ?? null,
-                    customerid: customerId,
-                    accountid : accountDetails.account_id
-                },
-            });
+                // Not linked yet -> go to link flow
+                router.push({
+                    pathname: "/paynow/paynowScreen",
+                    params: {
+                        userAccNumber: accountDetails?.account_number ?? null,
+                        userAccBalance: accountDetails?.current_balance ?? null,
+                        customerid: customerId,
+                        accountid: accountDetails.account_id
+                    },
+                });
             }
         } catch (err) {
             console.error("handlePayNow error:", err);
@@ -244,142 +244,142 @@ import { checkPaynowLinked } from '../lib/services/userService.js';
 
     return (
         <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#f8f9fa" />
-        <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={true}
-        >
-            <View style={styles.headerLogOut}>
-                <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-                    <Text style={styles.logoutText}>Logout</Text>
-                </TouchableOpacity>
-            </View>
+            <StatusBar barStyle="dark-content" backgroundColor="#f8f9fa" />
+            <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={true}
+            >
+                <View style={styles.headerLogOut}>
+                    <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+                        <Text style={styles.logoutText}>Logout</Text>
+                    </TouchableOpacity>
+                </View>
 
-            <View style={styles.header}>
-                <Text style={styles.welcomeText}>Welcome Back</Text>
-                <Text style={styles.userEmail}>{user.email}</Text>
-            </View>
+                <View style={styles.header}>
+                    <Text style={styles.welcomeText}>Welcome Back</Text>
+                    <Text style={styles.userEmail}>{user.email}</Text>
+                </View>
 
-            {/* Account Balance Card */}
-            <View style={styles.balanceCard}>
-                {accountDetails ? (
-                    <>
-                        <Text style={styles.balanceLabel}>Account Balance</Text>
-                        <Text style={styles.balanceAmount}>
-                            ${parseFloat(accountDetails.current_balance).toFixed(2)}
-                        </Text>
-                        <Text style={styles.accountNumber}>
-                            {accountDetails.account_number}
-                        </Text>
-                    </>
-                ) : (
-                    <>
-                        <Text style={styles.balanceLabel}>Welcome to Zentra Banking</Text>
-                        <Text style={styles.noAccountMessage}>
-                            You don't have an account yet
-                        </Text>
-                        <Text style={styles.noAccountSubtext}>
-                            Create your first account to start banking with us
-                        </Text>
-                        <TouchableOpacity
-                            style={styles.createAccountButton}
-                            onPress={handleAccounts}
-                        >
-                            <Text style={styles.createAccountButtonText}>Create Account</Text>
+                {/* Account Balance Card */}
+                <View style={styles.balanceCard}>
+                    {accountDetails ? (
+                        <>
+                            <Text style={styles.balanceLabel}>Account Balance</Text>
+                            <Text style={styles.balanceAmount}>
+                                ${parseFloat(accountDetails.current_balance).toFixed(2)}
+                            </Text>
+                            <Text style={styles.accountNumber}>
+                                {accountDetails.account_number}
+                            </Text>
+                        </>
+                    ) : (
+                        <>
+                            <Text style={styles.balanceLabel}>Welcome to Zentra Banking</Text>
+                            <Text style={styles.noAccountMessage}>
+                                You don't have an account yet
+                            </Text>
+                            <Text style={styles.noAccountSubtext}>
+                                Create your first account to start banking with us
+                            </Text>
+                            <TouchableOpacity
+                                style={styles.createAccountButton}
+                                onPress={handleAccounts}
+                            >
+                                <Text style={styles.createAccountButtonText}>Create Account</Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
+                </View>
+
+                {/* Quick Actions Card */}
+                <View style={styles.actionsCard}>
+                    <Text style={styles.actionsTitle}>Quick Actions</Text>
+                    <View style={styles.actionsContainer}>
+                        <TouchableOpacity style={styles.actionButton} onPress={handlePayNow}>
+                            <View style={styles.actionIconPlaceholder}>
+                                <Text style={styles.actionIconText}>💳</Text>
+                            </View>
+                            <Text style={styles.actionText}>PayNow</Text>
                         </TouchableOpacity>
-                    </>
-                )}
-            </View>
 
-            {/* Quick Actions Card */}
-            <View style={styles.actionsCard}>
-                <Text style={styles.actionsTitle}>Quick Actions</Text>
-                <View style={styles.actionsContainer}>
-                <TouchableOpacity style={styles.actionButton} onPress={handlePayNow}>
-                    <View style={styles.actionIconPlaceholder}>
-                    <Text style={styles.actionIconText}>💳</Text>
-                    </View>
-                    <Text style={styles.actionText}>PayNow</Text>
-                </TouchableOpacity>
+                        <TouchableOpacity style={styles.actionButton} onPress={handleScanPay}>
+                            <View style={styles.actionIconPlaceholder}>
+                                <Text style={styles.actionIconText}>📱</Text>
+                            </View>
+                            <Text style={styles.actionText}>Scan & Pay</Text>
+                        </TouchableOpacity>
 
-                <TouchableOpacity style={styles.actionButton} onPress={handleScanPay}>
-                    <View style={styles.actionIconPlaceholder}>
-                    <Text style={styles.actionIconText}>📱</Text>
+                        <TouchableOpacity style={styles.actionButton} onPress={handleFundTransfer}>
+                            <View style={styles.actionIconPlaceholder}>
+                                <Text style={styles.actionIconText}>💸</Text>
+                            </View>
+                            <Text style={styles.actionText}>Fund Transfer</Text>
+                        </TouchableOpacity>
                     </View>
-                    <Text style={styles.actionText}>Scan & Pay</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.actionButton} onPress={handleFundTransfer}>
-                    <View style={styles.actionIconPlaceholder}>
-                    <Text style={styles.actionIconText}>💸</Text>
-                    </View>
-                    <Text style={styles.actionText}>Fund Transfer</Text>
-                </TouchableOpacity>
                 </View>
-            </View>
 
-            {/* Apply Card */}
-            <View style={styles.actionsCard}>
-                <Text style={styles.actionsTitle}>Apply</Text>
-                <View style={styles.applyContainer}>
-                <TouchableOpacity style={styles.applyButton} onPress={handleAccounts}>
-                    <View style={styles.actionIconPlaceholder}>
-                    <Text style={styles.actionIconText}>🏦</Text>
-                    </View>
-                    <Text style={styles.actionText}>Accounts</Text>
-                </TouchableOpacity>
+                {/* Apply Card */}
+                <View style={styles.actionsCard}>
+                    <Text style={styles.actionsTitle}>Apply</Text>
+                    <View style={styles.applyContainer}>
+                        <TouchableOpacity style={styles.applyButton} onPress={handleAccounts}>
+                            <View style={styles.actionIconPlaceholder}>
+                                <Text style={styles.actionIconText}>🏦</Text>
+                            </View>
+                            <Text style={styles.actionText}>Accounts</Text>
+                        </TouchableOpacity>
 
-                <TouchableOpacity style={styles.applyButton} onPress={handleCards}>
-                    <View style={styles.actionIconPlaceholder}>
-                    <Text style={styles.actionIconText}>💳</Text>
+                        <TouchableOpacity style={styles.applyButton} onPress={handleCards}>
+                            <View style={styles.actionIconPlaceholder}>
+                                <Text style={styles.actionIconText}>💳</Text>
+                            </View>
+                            <Text style={styles.actionText}>Cards</Text>
+                        </TouchableOpacity>
                     </View>
-                    <Text style={styles.actionText}>Cards</Text>
-                </TouchableOpacity>
                 </View>
-            </View>
 
-            {/* Profile Card */}
-            <View style={styles.actionsCard}>
-                <Text style={styles.actionsTitle}>Profile</Text>
-                <View style={styles.actionsContainer}>
-                <TouchableOpacity style={styles.actionButton} onPress={handleUpdateParticulars}>
-                    <View style={styles.actionIconPlaceholder}>
-                    <Text style={styles.actionIconText}>✏️</Text>
-                    </View>
-                    <Text style={styles.actionText}>Update Particulars</Text>
-                </TouchableOpacity>
+                {/* Profile Card */}
+                <View style={styles.actionsCard}>
+                    <Text style={styles.actionsTitle}>Profile</Text>
+                    <View style={styles.actionsContainer}>
+                        <TouchableOpacity style={styles.actionButton} onPress={handleUpdateParticulars}>
+                            <View style={styles.actionIconPlaceholder}>
+                                <Text style={styles.actionIconText}>✏️</Text>
+                            </View>
+                            <Text style={styles.actionText}>Update Particulars</Text>
+                        </TouchableOpacity>
 
-                <TouchableOpacity style={styles.actionButton} onPress={handleChangeUserPin}>
-                    <View style={styles.actionIconPlaceholder}>
-                    <Text style={styles.actionIconText}>🔐</Text>
-                    </View>
-                    <Text style={styles.actionText}>Change User ID/Pin</Text>
-                </TouchableOpacity>
+                        <TouchableOpacity style={styles.actionButton} onPress={handleChangeUserPin}>
+                            <View style={styles.actionIconPlaceholder}>
+                                <Text style={styles.actionIconText}>🔐</Text>
+                            </View>
+                            <Text style={styles.actionText}>Change User ID/Pin</Text>
+                        </TouchableOpacity>
 
-                <TouchableOpacity style={styles.actionButton} onPress={handleCloseProfile}>
-                    <View style={styles.actionIconPlaceholder}>
-                    <Text style={styles.actionIconText}>❌</Text>
+                        <TouchableOpacity style={styles.actionButton} onPress={handleCloseProfile}>
+                            <View style={styles.actionIconPlaceholder}>
+                                <Text style={styles.actionIconText}>❌</Text>
+                            </View>
+                            <Text style={styles.actionText}>Close Bank Profile</Text>
+                        </TouchableOpacity>
                     </View>
-                    <Text style={styles.actionText}>Close Bank Profile</Text>
-                </TouchableOpacity>
                 </View>
-            </View>
 
-            {/* Webview Card */}
-            <View style={styles.actionsCard}>
-                <Text style={styles.actionsTitle}>Webview</Text>
-                <View style={styles.actionsContainer}>
-                <TouchableOpacity style={styles.actionButton} onPress={handleOpenWebview}>
-                    <View style={styles.actionIconPlaceholder}>
-                    <Text style={styles.actionIconText}>🌐</Text>
+                {/* Webview Card */}
+                <View style={styles.actionsCard}>
+                    <Text style={styles.actionsTitle}>Webview</Text>
+                    <View style={styles.actionsContainer}>
+                        <TouchableOpacity style={styles.actionButton} onPress={handleOpenWebview}>
+                            <View style={styles.actionIconPlaceholder}>
+                                <Text style={styles.actionIconText}>🌐</Text>
+                            </View>
+                            <Text style={styles.actionText}>Open Webview</Text>
+                        </TouchableOpacity>
                     </View>
-                    <Text style={styles.actionText}>Open Webview</Text>
-                </TouchableOpacity>
                 </View>
-            </View>
-            
-        </ScrollView>
+
+            </ScrollView>
         </SafeAreaView>
     );
 }
@@ -442,8 +442,8 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         shadowColor: '#000',
         shadowOffset: {
-        width: 0,
-        height: 2,
+            width: 0,
+            height: 2,
         },
         shadowOpacity: 0.1,
         shadowRadius: 8,
@@ -495,8 +495,8 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         shadowColor: '#000',
         shadowOffset: {
-        width: 0,
-        height: 2,
+            width: 0,
+            height: 2,
         },
         shadowOpacity: 0.1,
         shadowRadius: 8,
