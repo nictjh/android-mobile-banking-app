@@ -216,8 +216,13 @@ export default function Home() {
     };
 
     const handleCards = () => {
-        // TODO: Add Cards application functionality
-        console.log('Cards pressed');
+        // Changed this to LiveChat for now
+        router.push({
+                pathname: '/LiveChatScreen',
+                params: {
+                    customerId: customerId
+                }
+        });
     };
 
     const handleUpdateParticulars = () => {
