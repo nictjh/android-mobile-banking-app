@@ -82,10 +82,13 @@ export default function InAppWebViewScreen() {
             {/* WebView */}
             <WebView
                 ref={webref}
-                source={{ uri: currentUrl }}
+                // source={{ uri: currentUrl }}
+                source={{ uri: 'file:///android_asset/index.html' }}
                 javaScriptEnabled={true}  // Enable JavaScript
                 sharedCookiesEnabled={true}  // important
                 thirdPartyCookiesEnabled={true} // allow cross-site cookies
+                allowFileAccess={true} // ANDROID ONLY
+                allowFileAccessFromFileURLs={false} // ANDROID ONLY
                 onLoadStart={() => setLoading(true)}
                 onLoadEnd={() => setLoading(false)}
                 onNavigationStateChange={(nav) => {
