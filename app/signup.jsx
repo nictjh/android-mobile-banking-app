@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { View, Text, TextInput, StyleSheet, Alert, SafeAreaView, StatusBar, TouchableOpacity, Dimensions, ScrollView } from 'react-native'
+import { useState, useRef } from 'react'
+import { View, Text, TextInput, StyleSheet, Alert, SafeAreaView, StatusBar, TouchableOpacity, Dimensions, ScrollView, Animated, PanResponder } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { supabase } from '../lib/supabase'
@@ -10,6 +10,70 @@ export default function Signup() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showSignupForm, setShowSignupForm] = useState(false)
+
+  // Animation values
+  const slideAnim = useRef(new Animated.Value(0)).current
+  const fadeAnim = useRef(new Animated.Value(1)).current
+  const cardHeightAnim = useRef(new Animated.Value(120)).current
+
+  // Pan responder for swipe gestures
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        return gestureState.dy < -10 && Math.abs(gestureState.dx) < 50
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        if (gestureState.dy < -50) {
+          handleSignUpPress()
+        }
+      },
+    })
+  ).current
+
+  const handleSignUpPress = () => {
+    Animated.timing(cardHeightAnim, {
+      toValue: height * 0.7,
+      duration: 500,
+      useNativeDriver: false,
+    }).start(() => {
+      setShowSignupForm(true)
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start()
+    })
+  }
+
+  const handleBackPress = () => {
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setShowSignupForm(false)
+      Animated.timing(cardHeightAnim, {
+        toValue: 120,
+        duration: 300,
+        useNativeDriver: false,
+      }).start()
+    })
+  }
 
   const handleSignup = async () => {
     if (password !== confirmPassword) {
@@ -46,23 +110,68 @@ export default function Signup() {
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
-        <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <View style={styles.logoCircle}>
-              <Text style={styles.logoText}>💳</Text>
+        {/* Main Logo Screen */}
+        <Animated.View
+          style={[styles.logoScreen, { opacity: fadeAnim }]}
+          {...panResponder.panHandlers}
+        >
+          <View style={styles.centerLogoContainer}>
+            <View style={styles.largeLogo}>
+              <Text style={styles.largeLogoText}>💳</Text>
             </View>
-            <Text style={styles.bankName}>Zentra Bank</Text>
-            <Text style={styles.tagline}>Join the premium banking experience</Text>
+            <Text style={styles.largeBankName}>Zentra Bank</Text>
+            <Text style={styles.largeTagline}>Join the premium banking experience</Text>
           </View>
-        </View>
 
-        <View style={styles.formContainer}>
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.card}>
+          {/* Expanding White Card at Bottom */}
+          <View style={styles.expandingCardContainer}>
+            <Animated.View style={[styles.expandingCard, { height: cardHeightAnim }]}>
+              <TouchableOpacity
+                style={styles.cardTouchable}
+                onPress={handleSignUpPress}
+                activeOpacity={0.9}
+              >
+                <View style={styles.cardContent}>
+                  <View style={styles.cardHandle} />
+                  <Text style={styles.signUpCardText}>Create Account</Text>
+                </View>
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
+        </Animated.View>
+
+        {/* Signup Form (Slides up) */}
+        <Animated.View
+          style={[
+            styles.signupFormContainer,
+            {
+              transform: [{
+                translateY: slideAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [height, 0],
+                })
+              }]
+            }
+          ]}
+        >
+          <View style={styles.formHeader}>
+            <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
+              <Text style={styles.backButtonText}>←</Text>
+            </TouchableOpacity>
+            <View style={styles.smallLogoContainer}>
+              <View style={styles.smallLogo}>
+                <Text style={styles.smallLogoText}>💳</Text>
+              </View>
+              <Text style={styles.smallBankName}>Zentra Bank</Text>
+            </View>
+          </View>
+
+          <View style={styles.formCard}>
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
               <Text style={styles.welcomeTitle}>Create Account</Text>
               <Text style={styles.subtitle}>Start your secure banking journey</Text>
 
@@ -130,9 +239,9 @@ export default function Signup() {
                   </Text>
                 </View>
               </View>
-            </View>
-          </ScrollView>
-        </View>
+            </ScrollView>
+          </View>
+        </Animated.View>
       </LinearGradient>
     </SafeAreaView>
   )
@@ -147,54 +256,62 @@ const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },
-  header: {
-    flex: 0.35,
+
+  // Main logo screen styles
+  logoScreen: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'space-between',
+    paddingVertical: 60,
+  },
+  centerLogoContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 40,
   },
-  logoContainer: {
-    alignItems: 'center',
-  },
-  logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+  largeLogo: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     backgroundColor: 'rgba(220, 178, 78, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
-    borderWidth: 2,
+    marginBottom: 24,
+    borderWidth: 3,
     borderColor: '#dcb24e',
   },
-  logoText: {
-    fontSize: 32,
+  largeLogoText: {
+    fontSize: 48,
   },
-  bankName: {
-    fontSize: 28,
+  largeBankName: {
+    fontSize: 36,
     fontWeight: '700',
     color: '#fffffe',
-    marginBottom: 4,
-    letterSpacing: 1,
+    marginBottom: 8,
+    letterSpacing: 2,
+    textAlign: 'center',
   },
-  tagline: {
-    fontSize: 14,
+  largeTagline: {
+    fontSize: 18,
     color: '#dcb24e',
     fontWeight: '400',
+    textAlign: 'center',
+    marginTop: 8,
   },
-  formContainer: {
-    flex: 0.65,
-    paddingHorizontal: 24,
+
+  // Expanding white card at bottom
+  expandingCardContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 0,
   },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  card: {
+  expandingCard: {
     backgroundColor: '#fffffe',
-    padding: 28,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     shadowColor: '#000',
@@ -202,7 +319,106 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 8,
-    minHeight: height * 0.65,
+    overflow: 'hidden',
+  },
+  cardTouchable: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingTop: 16,
+  },
+  cardContent: {
+    alignItems: 'center',
+  },
+  cardHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#d1d5db',
+    borderRadius: 2,
+    marginBottom: 16,
+  },
+  signUpCardText: {
+    color: '#0e273c',
+    fontSize: 22,
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
+
+  // Signup form container (slides up)
+  signupFormContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'transparent',
+  },
+  formHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingTop: 60,
+    paddingBottom: 20,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 254, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  backButtonText: {
+    color: '#fffffe',
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  smallLogoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  smallLogo: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(220, 178, 78, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: '#dcb24e',
+  },
+  smallLogoText: {
+    fontSize: 20,
+  },
+  smallBankName: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#fffffe',
+    letterSpacing: 1,
+  },
+  formCard: {
+    flex: 1,
+    backgroundColor: '#fffffe',
+    marginHorizontal: 0,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingHorizontal: 28,
+    paddingTop: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+
+  // Form styles
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   welcomeTitle: {
     fontSize: 26,
