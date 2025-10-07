@@ -1,11 +1,11 @@
 {
   "expo": {
-    "scheme": "mobile-banking-app",
-    "name": "mobile-banking-app",
+    "scheme": "zentrabank",
+    "name": "Zentra Bank",
     "slug": "testReactNative",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/ZentraBankLogo.png",
+    "icon": "./assets/ZentraAppIcon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
