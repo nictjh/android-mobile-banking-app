@@ -85,7 +85,7 @@ yarn install
 
 ### 3. Add environmental variables
 
-- Create a .env file and .env.production files and add relevant variables (e.g. Supabase url and key)
+- Create a .env file and add relevant variables (e.g. Supabase url and key)
 
 ### 4. Start the Development Server
 
