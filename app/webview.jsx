@@ -83,7 +83,6 @@ export default function InAppWebViewScreen() {
             <WebView
                 ref={webref}
                 source={{ uri: currentUrl }}
-                // source={{ uri: 'file:///android_asset/index.html' }}
                 javaScriptEnabled={true}  // Enable JavaScript
                 sharedCookiesEnabled={true}  // important
                 thirdPartyCookiesEnabled={true} // allow cross-site cookies
