@@ -4,15 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { supabase } from '../lib/supabase'
 
-import { NativeModules } from 'react-native';
 import NotificationService from '../lib/services/NotificationService';
-
-// import analytics from '@react-native-firebase/analytics';
-
-// export async function logLogin() {
-//   await analytics().setAnalyticsCollectionEnabled(true);
-//   await analytics().logEvent('login_attempt', { method: 'email' });
-// }
 
 export default function Login() {
   const router = useRouter()
