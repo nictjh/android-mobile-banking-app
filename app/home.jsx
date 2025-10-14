@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar, ScrollView } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase.js';
@@ -215,7 +216,7 @@ export default function Home() {
         }
     };
 
-    const handleCards = () => {
+    const handleChat = () => {
         // Changed this to LiveChat for now
         router.push({
                 pathname: '/LiveChatScreen',
@@ -227,17 +228,13 @@ export default function Home() {
 
     const handleUpdateParticulars = () => {
         // Navigate to user info page
-        router.push('/userinfo');
-    };
-
-    const handleChangeUserPin = () => {
-        // TODO: Add Change User ID/Pin functionality
-        console.log('Change User ID/Pin pressed');
-    };
-
-    const handleCloseProfile = () => {
-        // TODO: Add Close Bank Profile functionality
-        console.log('Close Bank Profile pressed');
+        // router.push('/userinfo');
+        router.push({
+                pathname: '/userinfo',
+                params: {
+                    customerId: customerId
+                }
+        });
     };
 
     function handleOpenWebview() {
@@ -249,22 +246,35 @@ export default function Home() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#f8f9fa" />
-            <ScrollView
-                style={styles.scrollView}
-                contentContainerStyle={styles.scrollContent}
-                showsVerticalScrollIndicator={true}
+            <StatusBar barStyle="light-content" backgroundColor="#0e273c" />
+            <LinearGradient
+                colors={['#0e273c', '#1a3a52']}
+                style={styles.gradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
             >
-                <View style={styles.headerLogOut}>
-                    <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-                        <Text style={styles.logoutText}>Logout</Text>
-                    </TouchableOpacity>
-                </View>
-
-                <View style={styles.header}>
-                    <Text style={styles.welcomeText}>Welcome Back</Text>
-                    <Text style={styles.userEmail}>{user.email}</Text>
-                </View>
+                <ScrollView
+                    style={styles.scrollView}
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    <View style={styles.headerContainer}>
+                        <View style={styles.headerTop}>
+                            <View style={styles.logoContainer}>
+                                <View style={styles.logo}>
+                                    <Text style={styles.logoText}>💳</Text>
+                                </View>
+                                <Text style={styles.bankName}>Zentra Bank</Text>
+                            </View>
+                            <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+                                <Text style={styles.logoutText}>Logout</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <View style={styles.header}>
+                            <Text style={styles.welcomeText}>Welcome Back</Text>
+                            <Text style={styles.userEmail}>{user.email}</Text>
+                        </View>
+                    </View>
 
                 {/* Account Balance Card */}
                 <View style={styles.balanceCard}>
@@ -305,68 +315,49 @@ export default function Home() {
                             <View style={styles.actionIconPlaceholder}>
                                 <Text style={styles.actionIconText}>💳</Text>
                             </View>
-                            <Text style={styles.actionText}>PayNow</Text>
+                            <Text style={styles.actionText} numberOfLines={2} adjustsFontSizeToFit>PayNow</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity style={styles.actionButton} onPress={handleScanPay}>
                             <View style={styles.actionIconPlaceholder}>
                                 <Text style={styles.actionIconText}>📱</Text>
                             </View>
-                            <Text style={styles.actionText}>Scan & Pay</Text>
+                            <Text style={styles.actionText} numberOfLines={2} adjustsFontSizeToFit>Scan & Pay</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity style={styles.actionButton} onPress={handleFundTransfer}>
                             <View style={styles.actionIconPlaceholder}>
                                 <Text style={styles.actionIconText}>💸</Text>
                             </View>
-                            <Text style={styles.actionText}>Fund Transfer</Text>
+                            <Text style={styles.actionText} numberOfLines={2} adjustsFontSizeToFit>Fund Transfer</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
 
-                {/* Apply Card */}
+                {/* Others Card */}
                 <View style={styles.actionsCard}>
-                    <Text style={styles.actionsTitle}>Apply</Text>
+                    <Text style={styles.actionsTitle}>Others</Text>
                     <View style={styles.applyContainer}>
                         <TouchableOpacity style={styles.applyButton} onPress={handleAccounts}>
                             <View style={styles.actionIconPlaceholder}>
                                 <Text style={styles.actionIconText}>🏦</Text>
                             </View>
-                            <Text style={styles.actionText}>Accounts</Text>
+                            <Text style={styles.actionText} numberOfLines={2} adjustsFontSizeToFit>Accounts</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.applyButton} onPress={handleCards}>
-                            <View style={styles.actionIconPlaceholder}>
-                                <Text style={styles.actionIconText}>💳</Text>
-                            </View>
-                            <Text style={styles.actionText}>Cards</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
 
-                {/* Profile Card */}
-                <View style={styles.actionsCard}>
-                    <Text style={styles.actionsTitle}>Profile</Text>
-                    <View style={styles.actionsContainer}>
                         <TouchableOpacity style={styles.actionButton} onPress={handleUpdateParticulars}>
                             <View style={styles.actionIconPlaceholder}>
                                 <Text style={styles.actionIconText}>✏️</Text>
                             </View>
-                            <Text style={styles.actionText}>Update Particulars</Text>
+                            <Text style={styles.actionText} numberOfLines={2} adjustsFontSizeToFit>View Profile</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.actionButton} onPress={handleChangeUserPin}>
+                        <TouchableOpacity style={styles.applyButton} onPress={handleChat}>
                             <View style={styles.actionIconPlaceholder}>
-                                <Text style={styles.actionIconText}>🔐</Text>
+                                <Text style={styles.actionIconText}>💬</Text>
                             </View>
-                            <Text style={styles.actionText}>Change User ID/Pin</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.actionButton} onPress={handleCloseProfile}>
-                            <View style={styles.actionIconPlaceholder}>
-                                <Text style={styles.actionIconText}>❌</Text>
-                            </View>
-                            <Text style={styles.actionText}>Close Bank Profile</Text>
+                            <Text style={styles.actionText}>Support</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -384,7 +375,8 @@ export default function Home() {
                     </View>
                 </View>
 
-            </ScrollView>
+                </ScrollView>
+            </LinearGradient>
         </SafeAreaView>
     );
 }
@@ -392,126 +384,184 @@ export default function Home() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f8f9fa',
+        backgroundColor: '#0e273c',
+    },
+    gradient: {
+        flex: 1,
     },
     scrollView: {
         flex: 1,
     },
     scrollContent: {
-        paddingBottom: 24, // Add bottom padding for better scrolling
+        paddingBottom: 24,
     },
-    headerLogOut: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
+    headerContainer: {
         paddingHorizontal: 24,
-        paddingTop: 24,
+        paddingTop: 20,
+        paddingBottom: 20,
+    },
+    headerTop: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    logoContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    logo: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(220, 178, 78, 0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+        borderWidth: 1,
+        borderColor: '#dcb24e',
+    },
+    logoText: {
+        fontSize: 20,
+    },
+    bankName: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#fffffe',
+        letterSpacing: 1,
     },
     header: {
-        flexDirection: 'column',
         alignItems: 'flex-start',
-        paddingHorizontal: 24,
-        paddingTop: 24,
     },
     welcomeText: {
-        fontSize: 24,
-        fontWeight: '600',
-        color: '#1f2937',
+        fontSize: 28,
+        fontWeight: '700',
+        color: '#fffffe',
+        letterSpacing: 0.5,
     },
     userEmail: {
-        fontSize: 14,
-        color: '#6b7280',
+        fontSize: 16,
+        color: '#dcb24e',
         marginTop: 4,
+        fontWeight: '400',
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: '#0e273c',
     },
     loadingText: {
-        fontSize: 16,
-        color: '#6b7280',
-    },
-    logoutButton: {
-        padding: 8,
-    },
-    logoutText: {
-        fontSize: 16,
-        color: '#ef4444',
+        fontSize: 18,
+        color: '#fffffe',
         fontWeight: '500',
     },
+    logoutButton: {
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        backgroundColor: 'rgba(220, 178, 78, 0.15)',
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: '#dcb24e',
+    },
+    logoutText: {
+        fontSize: 14,
+        color: '#dcb24e',
+        fontWeight: '600',
+    },
     balanceCard: {
-        backgroundColor: '#ffffff',
+        backgroundColor: '#fffffe',
         marginHorizontal: 24,
         marginTop: 20,
-        padding: 24,
-        borderRadius: 16,
+        padding: 28,
+        borderRadius: 20,
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 2,
+            height: 8,
         },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 4,
+        shadowOpacity: 0.15,
+        shadowRadius: 16,
+        elevation: 8,
+        borderWidth: 1,
+        borderColor: 'rgba(220, 178, 78, 0.1)',
     },
     balanceLabel: {
-        fontSize: 14,
+        fontSize: 15,
         color: '#6b7280',
-        marginBottom: 8,
+        marginBottom: 12,
+        fontWeight: '500',
     },
     balanceAmount: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: '#1f2937',
+        fontSize: 36,
+        fontWeight: '700',
+        color: '#0e273c',
         marginBottom: 8,
+        letterSpacing: -0.5,
     },
     accountNumber: {
-        fontSize: 14,
+        fontSize: 15,
         color: '#9ca3af',
+        fontWeight: '500',
     },
     noAccountMessage: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#374151',
-        marginBottom: 4,
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#0e273c',
+        marginBottom: 6,
+        textAlign: 'center',
     },
     noAccountSubtext: {
-        fontSize: 14,
+        fontSize: 15,
         color: '#6b7280',
-        marginBottom: 16,
+        marginBottom: 20,
+        textAlign: 'center',
+        lineHeight: 22,
     },
     createAccountButton: {
-        backgroundColor: '#3b82f6',
-        paddingVertical: 12,
-        paddingHorizontal: 24,
-        borderRadius: 8,
+        backgroundColor: '#dcb24e',
+        paddingVertical: 14,
+        paddingHorizontal: 28,
+        borderRadius: 12,
         alignItems: 'center',
+        shadowColor: '#dcb24e',
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 6,
     },
     createAccountButtonText: {
-        color: '#ffffff',
-        fontSize: 14,
+        color: '#fffffe',
+        fontSize: 16,
         fontWeight: '600',
+        letterSpacing: 0.5,
     },
     actionsCard: {
-        backgroundColor: '#ffffff',
+        backgroundColor: '#fffffe',
         marginHorizontal: 24,
         marginTop: 20,
-        padding: 24,
-        borderRadius: 16,
+        padding: 28,
+        borderRadius: 20,
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 2,
+            height: 8,
         },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 4,
+        shadowOpacity: 0.15,
+        shadowRadius: 16,
+        elevation: 8,
+        borderWidth: 1,
+        borderColor: 'rgba(220, 178, 78, 0.1)',
     },
     actionsTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#1f2937',
-        marginBottom: 20,
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#0e273c',
+        marginBottom: 24,
+        letterSpacing: 0.5,
     },
     actionsContainer: {
         flexDirection: 'row',
@@ -524,32 +574,58 @@ const styles = StyleSheet.create({
     actionButton: {
         alignItems: 'center',
         flex: 1,
-        paddingVertical: 16,
+        paddingVertical: 20,
         paddingHorizontal: 8,
+        backgroundColor: 'rgba(220, 178, 78, 0.05)',
+        borderRadius: 16,
+        marginHorizontal: 4,
+        borderWidth: 1,
+        borderColor: 'rgba(220, 178, 78, 0.1)',
+        minHeight: 120,
     },
     applyButton: {
         alignItems: 'center',
         flex: 1,
-        paddingVertical: 16,
-        paddingHorizontal: 16,
+        paddingVertical: 20,
+        paddingHorizontal: 12,
         maxWidth: '45%',
+        backgroundColor: 'rgba(220, 178, 78, 0.05)',
+        borderRadius: 16,
+        marginHorizontal: 8,
+        borderWidth: 1,
+        borderColor: 'rgba(220, 178, 78, 0.1)',
+        minHeight: 120,
     },
-    actionIconPlaceholder: { // Makes it consistent across buttons
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: '#f3f4f6',
+    actionIconPlaceholder: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: 'rgba(220, 178, 78, 0.15)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 8,
+        marginBottom: 12,
+        borderWidth: 2,
+        borderColor: 'rgba(220, 178, 78, 0.3)',
+        shadowColor: '#dcb24e',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
     },
     actionIconText: {
-        fontSize: 20,
+        fontSize: 24,
     },
     actionText: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: '#374151',
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#0e273c',
         textAlign: 'center',
+        letterSpacing: 0.3,
+        lineHeight: 16,
+        maxWidth: '100%',
+        flexWrap: 'wrap',
     },
 });
