@@ -245,19 +245,16 @@ export default function Home() {
     }
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="#0e273c" />
+            {/* Header with Zentra Bank branding */}
             <LinearGradient
                 colors={['#0e273c', '#1a3a52']}
-                style={styles.gradient}
+                style={styles.headerGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
             >
-                <ScrollView
-                    style={styles.scrollView}
-                    contentContainerStyle={styles.scrollContent}
-                    showsVerticalScrollIndicator={false}
-                >
+                <SafeAreaView>
                     <View style={styles.headerContainer}>
                         <View style={styles.headerTop}>
                             <View style={styles.logoContainer}>
@@ -275,6 +272,15 @@ export default function Home() {
                             <Text style={styles.userEmail}>{user.email}</Text>
                         </View>
                     </View>
+                </SafeAreaView>
+            </LinearGradient>
+
+            {/* White content area */}
+            <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+            >
 
                 {/* Account Balance Card */}
                 <View style={styles.balanceCard}>
@@ -375,25 +381,26 @@ export default function Home() {
                     </View>
                 </View>
 
-                </ScrollView>
-            </LinearGradient>
-        </SafeAreaView>
+            </ScrollView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#0e273c',
+        backgroundColor: '#f8fafc',
     },
-    gradient: {
-        flex: 1,
+    headerGradient: {
+        paddingBottom: 20,
     },
     scrollView: {
         flex: 1,
+        backgroundColor: '#f8fafc',
     },
     scrollContent: {
-        paddingBottom: 24,
+        paddingBottom: 30,
+        paddingTop: 10,
     },
     headerContainer: {
         paddingHorizontal: 24,
@@ -470,98 +477,101 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     balanceCard: {
-        backgroundColor: '#fffffe',
-        marginHorizontal: 24,
+        backgroundColor: '#ffffff',
+        marginHorizontal: 20,
         marginTop: 20,
-        padding: 28,
-        borderRadius: 20,
-        shadowColor: '#000',
+        padding: 24,
+        borderRadius: 12,
+        shadowColor: '#64748b',
         shadowOffset: {
             width: 0,
-            height: 8,
+            height: 2,
         },
-        shadowOpacity: 0.15,
-        shadowRadius: 16,
-        elevation: 8,
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 4,
         borderWidth: 1,
-        borderColor: 'rgba(220, 178, 78, 0.1)',
+        borderColor: '#e2e8f0',
     },
     balanceLabel: {
-        fontSize: 15,
-        color: '#6b7280',
-        marginBottom: 12,
-        fontWeight: '500',
+        fontSize: 14,
+        color: '#64748b',
+        marginBottom: 8,
+        fontWeight: '600',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
     },
     balanceAmount: {
-        fontSize: 36,
+        fontSize: 32,
         fontWeight: '700',
-        color: '#0e273c',
-        marginBottom: 8,
+        color: '#1e293b',
+        marginBottom: 6,
         letterSpacing: -0.5,
     },
     accountNumber: {
-        fontSize: 15,
-        color: '#9ca3af',
+        fontSize: 14,
+        color: '#64748b',
         fontWeight: '500',
     },
     noAccountMessage: {
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: '700',
-        color: '#0e273c',
+        color: '#1e293b',
         marginBottom: 6,
         textAlign: 'center',
     },
     noAccountSubtext: {
-        fontSize: 15,
-        color: '#6b7280',
+        fontSize: 14,
+        color: '#64748b',
         marginBottom: 20,
         textAlign: 'center',
-        lineHeight: 22,
+        lineHeight: 20,
     },
     createAccountButton: {
-        backgroundColor: '#dcb24e',
-        paddingVertical: 14,
-        paddingHorizontal: 28,
-        borderRadius: 12,
+        backgroundColor: '#1e40af',
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 8,
         alignItems: 'center',
-        shadowColor: '#dcb24e',
+        shadowColor: '#1e40af',
         shadowOffset: {
             width: 0,
-            height: 4,
+            height: 2,
         },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 6,
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
     },
     createAccountButtonText: {
-        color: '#fffffe',
-        fontSize: 16,
+        color: '#ffffff',
+        fontSize: 15,
         fontWeight: '600',
-        letterSpacing: 0.5,
+        letterSpacing: 0.3,
     },
     actionsCard: {
-        backgroundColor: '#fffffe',
-        marginHorizontal: 24,
-        marginTop: 20,
-        padding: 28,
-        borderRadius: 20,
-        shadowColor: '#000',
+        backgroundColor: '#ffffff',
+        marginHorizontal: 20,
+        marginTop: 16,
+        padding: 20,
+        borderRadius: 12,
+        shadowColor: '#64748b',
         shadowOffset: {
             width: 0,
-            height: 8,
+            height: 2,
         },
-        shadowOpacity: 0.15,
-        shadowRadius: 16,
-        elevation: 8,
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 4,
         borderWidth: 1,
-        borderColor: 'rgba(220, 178, 78, 0.1)',
+        borderColor: '#e2e8f0',
     },
     actionsTitle: {
-        fontSize: 20,
+        fontSize: 16,
         fontWeight: '700',
-        color: '#0e273c',
-        marginBottom: 24,
-        letterSpacing: 0.5,
+        color: '#1e293b',
+        marginBottom: 16,
+        letterSpacing: 0.3,
+        textTransform: 'uppercase',
     },
     actionsContainer: {
         flexDirection: 'row',
@@ -576,12 +586,9 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingVertical: 20,
         paddingHorizontal: 8,
-        backgroundColor: 'rgba(220, 178, 78, 0.05)',
-        borderRadius: 16,
-        marginHorizontal: 4,
-        borderWidth: 1,
-        borderColor: 'rgba(220, 178, 78, 0.1)',
-        minHeight: 120,
+        backgroundColor: 'transparent',
+        marginHorizontal: 6,
+        minHeight: 110,
     },
     applyButton: {
         alignItems: 'center',
@@ -589,43 +596,33 @@ const styles = StyleSheet.create({
         paddingVertical: 20,
         paddingHorizontal: 12,
         maxWidth: '45%',
-        backgroundColor: 'rgba(220, 178, 78, 0.05)',
-        borderRadius: 16,
-        marginHorizontal: 8,
-        borderWidth: 1,
-        borderColor: 'rgba(220, 178, 78, 0.1)',
-        minHeight: 120,
+        backgroundColor: 'transparent',
+        marginHorizontal: 6,
+        minHeight: 110,
     },
     actionIconPlaceholder: {
         width: 56,
         height: 56,
         borderRadius: 28,
-        backgroundColor: 'rgba(220, 178, 78, 0.15)',
+        backgroundColor: '#f8fafc',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 12,
-        borderWidth: 2,
-        borderColor: 'rgba(220, 178, 78, 0.3)',
-        shadowColor: '#dcb24e',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 2,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
     },
     actionIconText: {
-        fontSize: 24,
+        fontSize: 22,
     },
     actionText: {
-        fontSize: 12,
+        fontSize: 13,
         fontWeight: '600',
-        color: '#0e273c',
+        color: '#475569',
         textAlign: 'center',
-        letterSpacing: 0.3,
+        letterSpacing: 0.2,
         lineHeight: 16,
         maxWidth: '100%',
         flexWrap: 'wrap',
+        marginTop: 2,
     },
 });
