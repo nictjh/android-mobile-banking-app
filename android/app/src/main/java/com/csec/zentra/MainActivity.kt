@@ -102,13 +102,12 @@ class MainActivity : ReactActivity() {
         val token = response.token()
         Log.d("Integrity", "Token received: ${token.take(30)}...")
 
-        // send the token to your backend for verification
+        // send the token to supabase edge function for verification
         sendTokenToBackend(token)
       }
       .addOnFailureListener { e ->
         Log.e("Integrity", "Integrity request failed: ${e.message}", e)
 
-        // Handle different failure scenarios gracefully
         runOnUiThread {
           when {
             e.message?.contains("INTEGRITY_NO_ERROR") == true -> {
@@ -119,7 +118,6 @@ class MainActivity : ReactActivity() {
             }
             else -> {
               Log.w("Integrity", "Play Integrity not available (likely sideloaded/debug build)")
-              // Don't show error toast for expected failures in debug builds
             }
           }
         }
@@ -152,7 +150,7 @@ class MainActivity : ReactActivity() {
                 val verdictJson = try { JSONObject(bodyStr) } catch (_: Exception) { null }
 
                 runOnUiThread {
-                    // 🚨 Check for dangerous access risks
+                    // Check for dangerous access risks
                     if (verdictJson != null && hasDangerousAccessRisk(verdictJson)) {
                         showRiskDialog()
                         return@runOnUiThread
