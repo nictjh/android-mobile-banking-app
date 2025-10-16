@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
     },
     headerContainer: {
         paddingHorizontal: 24,
-        paddingTop: 20,
+        paddingTop: 40,
         paddingBottom: 20,
     },
     headerTop: {
