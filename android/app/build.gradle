@@ -102,8 +102,8 @@ android {
         applicationId 'com.csec.zentra'
         minSdkVersion 29
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 3
-        versionName "1.0.2"
+        versionCode 7
+        versionName "1.0.4"
 
         ndk {
             abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
@@ -111,6 +111,7 @@ android {
 
         // Add BuildConfig fields for environment variables
         buildConfigField "String", "SUPABASE_ANON_KEY", "\"${project.findProperty('SUPABASE_ANON_KEY') ?: ''}\""
+        buildConfigField "String", "INTEGRITY_CLOUD_PROJECT_NUMBER", "\"${project.findProperty('INTEGRITY_CLOUD_PROJECT_NUMBER') ?: ''}\""
     }
     signingConfigs {
         debug {
@@ -139,7 +140,7 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
             crunchPngs (findProperty('android.enablePngCrunchInReleaseBuilds')?.toBoolean() ?: true)
         }
-        
+
     }
     packagingOptions {
         jniLibs {
@@ -174,7 +175,7 @@ android {
 dependencies {
 
     // For Play integrity API
-    implementation "com.google.android.play:integrity:1.4.0"
+    implementation "com.google.android.play:integrity:1.5.0"
     // For HTTPs requests
     implementation "com.squareup.okhttp3:okhttp:4.12.0"
 

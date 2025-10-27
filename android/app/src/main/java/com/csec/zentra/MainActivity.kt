@@ -12,7 +12,15 @@ import expo.modules.ReactActivityDelegateWrapper
 
 import com.google.android.play.core.integrity.IntegrityManagerFactory
 import com.google.android.play.core.integrity.IntegrityTokenRequest
+import com.google.android.play.core.integrity.StandardIntegrityManager
+import com.google.android.play.core.integrity.model.IntegrityDialogTypeCode
 import android.util.Log
+
+import com.google.android.play.core.integrity.StandardIntegrityManager.PrepareIntegrityTokenRequest
+import com.google.android.play.core.integrity.StandardIntegrityManager.StandardIntegrityToken
+import com.google.android.play.core.integrity.StandardIntegrityManager.StandardIntegrityTokenRequest
+import com.google.android.play.core.integrity.StandardIntegrityManager.StandardIntegrityDialogRequest
+import com.google.android.play.core.integrity.StandardIntegrityException
 
 import androidx.appcompat.app.AlertDialog
 
@@ -31,6 +39,9 @@ class MainActivity : ReactActivity() {
         "UNKNOWN_CONTROLLING",
         "UNKNOWN_OVERLAYS"
     )
+
+    private var integrityToken: String? = null
+    private val cloudProjectNumber: Long? = BuildConfig.INTEGRITY_CLOUD_PROJECT_NUMBER.toLongOrNull()
 
   override fun onCreate(savedInstanceState: Bundle?) {
     // Set the theme to AppTheme BEFORE onCreate to support
@@ -102,6 +113,9 @@ class MainActivity : ReactActivity() {
         val token = response.token()
         Log.d("Integrity", "Token received: ${token.take(30)}...")
 
+        // Store the token for potential use in Standard Integrity dialog
+        integrityToken = token
+
         // send the token to supabase edge function for verification
         sendTokenToBackend(token)
       }
@@ -152,7 +166,11 @@ class MainActivity : ReactActivity() {
                 runOnUiThread {
                     // Check for dangerous access risks
                     if (verdictJson != null && hasDangerousAccessRisk(verdictJson)) {
-                        showRiskDialog()
+                        if (integrityToken != null) {
+                            showRiskDialogStandard()
+                        } else {
+                            showFallbackDialog()
+                        }
                         return@runOnUiThread
                     }
                     // Show success message when no dangerous risks detected
@@ -182,20 +200,101 @@ class MainActivity : ReactActivity() {
         return allStrings.any { it in DANGEROUS_RISKS }
     }
 
-    private fun showRiskDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("Security Warning")
-        builder.setMessage(
-            "We detected apps that may capture, overlay, or control your screen.\n\n" +
-            "For your security, please close those apps before continuing."
-        )
-        builder.setCancelable(false)
-        builder.setPositiveButton("Close App") { _, _ ->
-            finishAndRemoveTask()
+
+    private fun showRiskDialogStandard() {
+        val projectNumber = cloudProjectNumber
+        if (projectNumber == null) {
+            android.util.Log.e("Integrity", "Standard Integrity API not available: cloud project number is missing.")
+            showFallbackDialog()
+            return
         }
-        builder.show()
+        try {
+            val standardIntegrityManager: StandardIntegrityManager =
+            IntegrityManagerFactory.createStandard(this)
+
+            // 1) Prepare the Standard token provider
+            val prepareReq = PrepareIntegrityTokenRequest.builder()
+                .setCloudProjectNumber(projectNumber)
+                .build()
+            standardIntegrityManager.prepareIntegrityToken(prepareReq)
+            .addOnSuccessListener { provider ->
+                // 2) Request a Standard token (this returns a StandardIntegrityToken object)
+                val tokenReq = StandardIntegrityTokenRequest.builder()
+                    .build()
+                provider.request(tokenReq)
+                .addOnSuccessListener { token: StandardIntegrityToken ->
+                    // 3) Build dialog request with the Standard token response
+                    val dialogReq = StandardIntegrityDialogRequest.builder()
+                    .setActivity(this)
+                    .setTypeCode(IntegrityDialogTypeCode.CLOSE_ALL_ACCESS_RISK)
+                    .setStandardIntegrityResponse(
+                        StandardIntegrityDialogRequest.StandardIntegrityResponse.TokenResponse(token)
+                    )
+                    .build()
+
+                    // 4) Show remediation dialog
+                    standardIntegrityManager.showDialog(dialogReq)
+                    .addOnSuccessListener { resultCode ->
+                        android.util.Log.i("Integrity", "Standard remediation dialog shown. Result: $resultCode")
+                        android.widget.Toast.makeText(this, "Please reopen the app to continue.", android.widget.Toast.LENGTH_LONG).show()
+                        finishAndRemoveTask()
+                    }
+                    .addOnFailureListener { e ->
+                        android.util.Log.e("Integrity", "Failed to show Standard remediation dialog", e)
+                        showFallbackDialog()
+                    }
+                }
+                .addOnFailureListener { e ->
+                    // If the Standard token request failed with a StandardIntegrityException,
+                    // you can still show the Standard dialog using ExceptionDetails.
+                    if (e is StandardIntegrityException) {
+                    val dialogReq = StandardIntegrityDialogRequest.builder()
+                        .setActivity(this)
+                        .setTypeCode(IntegrityDialogTypeCode.CLOSE_ALL_ACCESS_RISK)
+                        .setStandardIntegrityResponse(
+                        StandardIntegrityDialogRequest.StandardIntegrityResponse.ExceptionDetails(e)
+                        )
+                        .build()
+
+                    standardIntegrityManager.showDialog(dialogReq)
+                        .addOnSuccessListener { resultCode ->
+                        android.util.Log.i("Integrity", "Standard remediation dialog (exception) shown. Result: $resultCode")
+                        android.widget.Toast.makeText(this, "Please reopen the app to continue.", android.widget.Toast.LENGTH_LONG).show()
+                        finishAndRemoveTask()
+                        }
+                        .addOnFailureListener { err ->
+                        android.util.Log.e("Integrity", "Failed to show dialog from exception", err)
+                        showFallbackDialog()
+                        }
+                    } else {
+                    android.util.Log.e("Integrity", "Standard token request failed", e)
+                    showFallbackDialog()
+                    }
+                }
+            }
+            .addOnFailureListener { e ->
+                android.util.Log.e("Integrity", "prepareIntegrityToken() failed", e)
+                showFallbackDialog()
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("Integrity", "Standard Integrity API not available", e)
+            showFallbackDialog()
+        }
     }
 
-
+    private fun showFallbackDialog() {
+        // Fallback: custom AlertDialog for devices without Standard Integrity support
+        AlertDialog.Builder(this)
+            .setTitle("Security Warning")
+            .setMessage(
+                "We detected apps that may capture, overlay, or control your screen.\n\n" +
+                "For your security, please close those apps before continuing."
+            )
+            .setCancelable(false)
+            .setPositiveButton("Close App") { _, _ ->
+                finishAndRemoveTask()
+            }
+            .show()
+    }
 
 }
